@@ -1,21 +1,14 @@
 package server
 
 import (
-	"github.com/labstack/echo/v4"
+	"akshidas/e-com/pkg/db"
+	ecom "akshidas/e-com/pkg/e-com"
+	"encoding/json"
 	"net/http"
+	"time"
+
+	"github.com/labstack/echo/v4"
 )
-
-type APIServer struct {
-	Status string
-	Port   string
-}
-
-type User struct {
-	FistName string
-	LastName string
-	Email    string
-	Password string
-}
 
 func (s *APIServer) Run() {
 	e := echo.New()
@@ -24,13 +17,31 @@ func (s *APIServer) Run() {
 		return c.JSON(http.StatusCreated, s.Status)
 	})
 
-	e.GET("/users", GetAllUsers)
+	e.POST("/users", Create(s.Store))
 
 	e.Logger.Fatal(e.Start(s.Port))
 }
 
-func GetAllUsers(c echo.Context) error {
-	users := &[]User{{FistName: "Akshay", LastName: "Krishna", Email: "akshay@bpract.com", Password: "root"}, {FistName: "Akshay", LastName: "Krishna", Email: "akshay@bpract.com", Password: "root"}}
+func Create(s db.Store) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		a := &ecom.User{}
+		if err := json.NewDecoder(c.Request().Body).Decode(a); err != nil {
+			return err
+		}
 
-	return c.JSON(http.StatusCreated, users)
+		sqlQuery := `insert into udsers (first_name, last_name, password, email, created_at) values($1, $2, $3, $4, $5)`
+
+		if _, err := s.DB.Query(sqlQuery,
+			a.FirstName,
+			a.LastName,
+			a.Password,
+			a.Email,
+			time.Now().UTC(),
+		); err != nil {
+			return c.JSON(http.StatusBadRequest, err.Error())
+
+		}
+		return c.JSON(http.StatusCreated, "user created")
+	}
+
 }

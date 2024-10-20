@@ -10,7 +10,7 @@ import (
 
 // Implements Database Interface
 type Store struct {
-	db *sql.DB
+	DB *sql.DB
 }
 
 func (s *Store) Connect() error {
@@ -30,7 +30,7 @@ func (s *Store) Connect() error {
 	}
 
 	log.Print("🗃️ connected to database")
-	s.db = db
+	s.DB = db
 	return nil
 }
 
@@ -44,7 +44,7 @@ func (s *Store) Init() {
 	password varchar,
 	created_at timestamp
 	)`
-	_, err := s.db.Exec(query)
+	_, err := s.DB.Exec(query)
 	if err != nil {
 		log.Println("Failed to create users table")
 	}

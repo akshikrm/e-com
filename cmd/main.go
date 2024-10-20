@@ -15,6 +15,6 @@ func main() {
 	database := &db.Store{}
 	db.Connect(database)
 
-	server := &server.APIServer{Status: "Server is up and running", Port: ":5234"}
+	server := &server.APIServer{Status: "Server is up and running", Port: ":5234", Store: *database}
 	server.Run()
 }
