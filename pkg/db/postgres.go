@@ -9,11 +9,12 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type PostgresStore struct {
+// Implements Database Interface
+type Store struct {
 	db *sql.DB
 }
 
-func NewPostgresStore() (*PostgresStore, error) {
+func (s *Store) Connect() error {
 	db_user := os.Getenv("DB_USER")
 	db_name := os.Getenv("DB_NAME")
 	db_password := os.Getenv("DB_PASSWORD")
@@ -22,13 +23,28 @@ func NewPostgresStore() (*PostgresStore, error) {
 	db, err := sql.Open("postgres", connStr)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if err := db.Ping(); err != nil {
-		return nil, err
+		return err
 	}
 
 	log.Print("🗃️ connected to database")
-	return &PostgresStore{db: db}, nil
+	s.db = db
+	return nil
+}
+
+func (s *Store) Init() error {
+	query := `create table  if not exists account (
+	id serial primary key,
+	first_name varchar(50),
+	last_name varchar(50),
+	number serial,
+	password varchar,
+	balance serial,
+	created_at timestamp
+	)`
+	_, err := s.db.Exec(query)
+	return err
 }
