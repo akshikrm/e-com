@@ -3,10 +3,9 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	_ "github.com/lib/pq"
 	"log"
 	"os"
-
-	_ "github.com/lib/pq"
 )
 
 // Implements Database Interface

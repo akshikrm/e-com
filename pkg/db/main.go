@@ -6,7 +6,7 @@ import (
 
 type Database interface {
 	Connect() error
-	Init() error
+	Init()
 }
 
 func Connect(d Database) {
