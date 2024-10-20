@@ -35,16 +35,19 @@ func (s *Store) Connect() error {
 	return nil
 }
 
-func (s *Store) Init() error {
-	query := `create table  if not exists account (
+func (s *Store) Init() {
+	log.Println("Creating users table")
+	query := `create table if not exists users (
 	id serial primary key,
 	first_name varchar(50),
 	last_name varchar(50),
-	number serial,
+	email varchar(50),
 	password varchar,
-	balance serial,
 	created_at timestamp
 	)`
 	_, err := s.db.Exec(query)
-	return err
+	if err != nil {
+		log.Println("Failed to create users table")
+	}
+	log.Println("Created users table")
 }

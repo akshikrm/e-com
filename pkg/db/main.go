@@ -1,6 +1,8 @@
 package db
 
-import "log"
+import (
+	"log"
+)
 
 type Database interface {
 	Connect() error
