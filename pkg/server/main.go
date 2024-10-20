@@ -10,6 +10,13 @@ type APIServer struct {
 	Port   string
 }
 
+type User struct {
+	FistName string
+	LastName string
+	Email    string
+	Password string
+}
+
 func (s *APIServer) Run() {
 	e := echo.New()
 
@@ -17,5 +24,13 @@ func (s *APIServer) Run() {
 		return c.JSON(http.StatusCreated, s.Status)
 	})
 
+	e.GET("/users", GetAllUsers)
+
 	e.Logger.Fatal(e.Start(s.Port))
+}
+
+func GetAllUsers(c echo.Context) error {
+	users := &[]User{{FistName: "Akshay", LastName: "Krishna", Email: "akshay@bpract.com", Password: "root"}, {FistName: "Akshay", LastName: "Krishna", Email: "akshay@bpract.com", Password: "root"}}
+
+	return c.JSON(http.StatusCreated, users)
 }
