@@ -14,8 +14,24 @@ type userService struct {
 	DB *sql.DB
 }
 
-func (u *userService) Get() (*[]types.User, error) {
-	return nil, nil
+func (u *userService) Get() ([]*types.User, error) {
+	query := `select * from users;`
+
+	rows, err := u.DB.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	users := []*types.User{}
+	for rows.Next() {
+		user, err := scanIntoUser(rows)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
 }
 
 func (u *userService) GetOne(id int) (*types.User, error) {
@@ -66,4 +82,19 @@ func main() {
 		User:   userService,
 	}
 	server.Run()
+}
+
+func scanIntoUser(rows *sql.Rows) (*types.User, error) {
+	user := &types.User{}
+	err := rows.Scan(
+		&user.ID,
+		&user.FirstName,
+		&user.LastName,
+		&user.Email,
+		&user.Password,
+		&user.CreatedAt,
+	)
+
+	return user, err
+
 }

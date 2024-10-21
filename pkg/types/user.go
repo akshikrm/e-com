@@ -12,7 +12,7 @@ type User struct {
 }
 
 type UserService interface {
-	Get() (*[]User, error)
+	Get() ([]*User, error)
 	GetOne(id int) (*User, error)
 	Create(user *User) error
 	Update(user User) error

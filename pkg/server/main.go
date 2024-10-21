@@ -14,6 +14,16 @@ func (s *APIServer) Run() {
 		writeJson(w, http.StatusOK, "server is up and running")
 	})
 
+	router.HandleFunc("GET /users", func(w http.ResponseWriter, r *http.Request) {
+		users, err := s.User.Get()
+		if err != nil {
+			writeJson(w, http.StatusBadRequest, "failed to get data")
+			return
+		}
+
+		writeJson(w, http.StatusOK, users)
+
+	})
 	router.HandleFunc("POST /users", func(w http.ResponseWriter, r *http.Request) {
 		a := &types.User{}
 		if err := json.NewDecoder(r.Body).Decode(a); err != nil {
