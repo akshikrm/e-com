@@ -18,7 +18,7 @@ func (s *Store) Connect() error {
 	db_name := os.Getenv("DB_NAME")
 	db_password := os.Getenv("DB_PASSWORD")
 
-	connStr := fmt.Sprintf("user=%s dbname=%s password=%s sslmode=disable", db_user, db_name, db_password)
+	connStr := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", "localhost", "9000", db_user, db_name, db_password)
 	db, err := sql.Open("postgres", connStr)
 
 	if err != nil {

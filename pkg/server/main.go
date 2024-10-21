@@ -1,25 +1,22 @@
 package server
 
 import (
-	"akshidas/e-com/pkg/db"
-	ecom "akshidas/e-com/pkg/e-com"
 	"encoding/json"
+	"log"
 	"net/http"
-	"time"
 
 	"github.com/labstack/echo/v4"
 )
 
 func (s *APIServer) Run() {
-	e := echo.New()
+	router := http.NewServeMux()
 
-	e.GET("/", func(c echo.Context) error {
-		return c.JSON(http.StatusCreated, s.Status)
+	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+		writeJson(w, http.StatusOK, "server is up and running")
 	})
 
-	e.POST("/users", Create(s.Store))
-
-	e.Logger.Fatal(e.Start(s.Port))
+	log.Printf("🚀 Server started on port %s", s.Port)
+	log.Fatal(http.ListenAndServe(s.Port, router))
 }
 
 func Create(s db.Store) echo.HandlerFunc {
@@ -44,4 +41,10 @@ func Create(s db.Store) echo.HandlerFunc {
 		return c.JSON(http.StatusCreated, "user created")
 	}
 
+}
+
+func writeJson(w http.ResponseWriter, status int, value any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(value)
 }
