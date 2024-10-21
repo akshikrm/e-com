@@ -1,4 +1,4 @@
-package ecom
+package types
 
 import "time"
 
@@ -14,15 +14,15 @@ type User struct {
 type UserService interface {
 	Get() (*[]User, error)
 	GetOne(id int) (*User, error)
-	Create(user User) error
+	Create(user *User) error
 	Update(user User) error
 	Delete(id int) error
 }
 
-type UserDatabase interface {
-	Get() (*[]User, error)
-	GetOne(id int) (*User, error)
-	Create(user User) error
-	Update(user User) error
-	Delete(id int) error
-}
+// type UserDatabase interface {
+// 	Get() (*[]User, error)
+// 	GetOne(id int) (*User, error)
+// 	Create(user User) error
+// 	Update(user User) error
+// 	Delete(id int) error
+// }

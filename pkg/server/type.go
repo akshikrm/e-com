@@ -1,11 +1,11 @@
 package server
 
 import (
-	db "akshidas/e-com/pkg/db"
+	"akshidas/e-com/pkg/types"
 )
 
 type APIServer struct {
 	Status string
 	Port   string
-	Store  db.Store
+	User   types.UserService
 }
