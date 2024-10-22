@@ -56,7 +56,7 @@ func (u *UserService) Create(user *types.User) error {
 	users (first_name, last_name, password, email, created_at)
 	values($1, $2, $3, $4, $5)`
 
-	_, err := u.DB.Query(sqlQuery,
+	_, err := u.DB.Exec(sqlQuery,
 		user.FirstName,
 		user.LastName,
 		user.Password,
