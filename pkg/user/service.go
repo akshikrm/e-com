@@ -4,9 +4,11 @@ import (
 	"akshidas/e-com/pkg/db"
 	"akshidas/e-com/pkg/types"
 	"database/sql"
-	"fmt"
+	"errors"
 	"time"
 )
+
+var UserNotFound = errors.New("not found")
 
 func NewUserService(db *db.PostgresStore) *UserService {
 	return &UserService{DB: db.DB}
@@ -37,7 +39,7 @@ func (u *UserService) Get() ([]*types.User, error) {
 
 func (u *UserService) GetOne(id int) (*types.User, error) {
 	query := `select * from users where id=$1`
-	rows, err := u.DB.Query(query)
+	rows, err := u.DB.Query(query, id)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +48,7 @@ func (u *UserService) GetOne(id int) (*types.User, error) {
 		return scanIntoUser(rows)
 	}
 
-	return nil, fmt.Errorf("user with id %d not found", id)
+	return nil, UserNotFound
 }
 
 func (u *UserService) Create(user *types.User) error {
@@ -70,6 +72,16 @@ func (u *UserService) Update(user types.User) error {
 }
 
 func (u *UserService) Delete(id int) error {
+	query := "delete from users where id=$1"
+	result, err := u.DB.Exec(query, id)
+	if count, _ := result.RowsAffected(); count == 0 {
+		return UserNotFound
+	}
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
