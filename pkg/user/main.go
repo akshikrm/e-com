@@ -5,6 +5,6 @@ import (
 	"akshidas/e-com/pkg/types"
 )
 
-func NewUserService(db *db.Store) types.UserService {
+func NewUserService(db *db.PostgresStore) types.UserService {
 	return &userService{DB: db.DB}
 }

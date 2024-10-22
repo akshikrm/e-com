@@ -9,11 +9,11 @@ import (
 )
 
 // Implements Database Interface
-type Store struct {
+type PostgresStore struct {
 	DB *sql.DB
 }
 
-func (s *Store) Connect() error {
+func (s *PostgresStore) Connect() error {
 	db, err := sql.Open("postgres", s.getConnectionString())
 
 	if err != nil {
@@ -29,7 +29,7 @@ func (s *Store) Connect() error {
 	return nil
 }
 
-func (s *Store) Init() {
+func (s *PostgresStore) Init() {
 	log.Println("Creating users table")
 
 	query := `create table if not exists users (
@@ -49,7 +49,7 @@ func (s *Store) Init() {
 	log.Println("Created users table")
 }
 
-func (s *Store) getConnectionString() string {
+func (s *PostgresStore) getConnectionString() string {
 	db_user := os.Getenv("DB_USER")
 	db_name := os.Getenv("DB_NAME")
 	db_password := os.Getenv("DB_PASSWORD")

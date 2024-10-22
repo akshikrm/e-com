@@ -13,7 +13,7 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	database := &db.Store{}
+	database := &db.PostgresStore{}
 	db.Connect(database)
 
 	userService := user.NewUserService(database)
