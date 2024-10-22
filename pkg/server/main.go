@@ -1,49 +1,27 @@
 package server
 
 import (
-	"akshidas/e-com/pkg/types"
-	"encoding/json"
+	"akshidas/e-com/pkg/api"
+	"akshidas/e-com/pkg/db"
 	"log"
 	"net/http"
 )
 
+type APIServer struct {
+	Status string
+	Port   string
+	Store  *db.PostgresStore
+}
+
+// Create a new server and registers routes to it
 func (s *APIServer) Run() {
 	router := http.NewServeMux()
 
 	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		writeJson(w, http.StatusOK, "server is up and running")
+		w.Write([]byte("server is up and running"))
 	})
 
-	router.HandleFunc("GET /users", func(w http.ResponseWriter, r *http.Request) {
-		users, err := s.User.Get()
-		if err != nil {
-			writeJson(w, http.StatusBadRequest, "failed to get data")
-			return
-		}
-
-		writeJson(w, http.StatusOK, users)
-
-	})
-	router.HandleFunc("POST /users", func(w http.ResponseWriter, r *http.Request) {
-		a := &types.User{}
-		if err := json.NewDecoder(r.Body).Decode(a); err != nil {
-			writeJson(w, http.StatusBadRequest, err)
-		}
-
-		err := s.User.Create(a)
-		if err != nil {
-			writeJson(w, http.StatusBadRequest, "failed to add to new user")
-		}
-
-		writeJson(w, http.StatusOK, "created user")
-	})
-
+	api.RegisterUserApi(router, s.Store)
 	log.Printf("🚀 Server started on port %s", s.Port)
 	log.Fatal(http.ListenAndServe(s.Port, router))
-}
-
-func writeJson(w http.ResponseWriter, status int, value any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(value)
 }

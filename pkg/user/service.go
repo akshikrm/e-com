@@ -1,17 +1,22 @@
 package user
 
 import (
+	"akshidas/e-com/pkg/db"
 	"akshidas/e-com/pkg/types"
 	"database/sql"
 	"fmt"
 	"time"
 )
 
-type userService struct {
+func NewUserService(db *db.PostgresStore) *UserService {
+	return &UserService{DB: db.DB}
+}
+
+type UserService struct {
 	DB *sql.DB
 }
 
-func (u *userService) Get() ([]*types.User, error) {
+func (u *UserService) Get() ([]*types.User, error) {
 	query := `select * from users;`
 
 	rows, err := u.DB.Query(query)
@@ -30,7 +35,7 @@ func (u *userService) Get() ([]*types.User, error) {
 	return users, nil
 }
 
-func (u *userService) GetOne(id int) (*types.User, error) {
+func (u *UserService) GetOne(id int) (*types.User, error) {
 	query := `select * from users where id=$1`
 	rows, err := u.DB.Query(query)
 	if err != nil {
@@ -44,7 +49,7 @@ func (u *userService) GetOne(id int) (*types.User, error) {
 	return nil, fmt.Errorf("user with id %d not found", id)
 }
 
-func (u *userService) Create(user *types.User) error {
+func (u *UserService) Create(user *types.User) error {
 	sqlQuery := `insert into 
 	users (first_name, last_name, password, email, created_at)
 	values($1, $2, $3, $4, $5)`
@@ -60,11 +65,11 @@ func (u *userService) Create(user *types.User) error {
 	return err
 }
 
-func (u *userService) Update(user types.User) error {
+func (u *UserService) Update(user types.User) error {
 	return nil
 }
 
-func (u *userService) Delete(id int) error {
+func (u *UserService) Delete(id int) error {
 	return nil
 }
 

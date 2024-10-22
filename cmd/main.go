@@ -3,7 +3,6 @@ package main
 import (
 	"akshidas/e-com/pkg/db"
 	"akshidas/e-com/pkg/server"
-	"akshidas/e-com/pkg/user"
 	"github.com/joho/godotenv"
 	"log"
 )
@@ -16,12 +15,10 @@ func main() {
 	database := &db.PostgresStore{}
 	db.Connect(database)
 
-	userService := user.NewUserService(database)
-
 	server := &server.APIServer{
 		Status: "Server is up and running",
 		Port:   ":5234",
-		User:   userService,
+		Store:  database,
 	}
 	server.Run()
 }
