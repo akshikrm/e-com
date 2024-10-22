@@ -14,12 +14,7 @@ type Store struct {
 }
 
 func (s *Store) Connect() error {
-	db_user := os.Getenv("DB_USER")
-	db_name := os.Getenv("DB_NAME")
-	db_password := os.Getenv("DB_PASSWORD")
-
-	connStr := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", "localhost", "9000", db_user, db_name, db_password)
-	db, err := sql.Open("postgres", connStr)
+	db, err := sql.Open("postgres", s.getConnectionString())
 
 	if err != nil {
 		return err
@@ -36,6 +31,7 @@ func (s *Store) Connect() error {
 
 func (s *Store) Init() {
 	log.Println("Creating users table")
+
 	query := `create table if not exists users (
 	id serial primary key,
 	first_name varchar(50),
@@ -44,9 +40,22 @@ func (s *Store) Init() {
 	password varchar,
 	created_at timestamp
 	)`
+
 	_, err := s.DB.Exec(query)
 	if err != nil {
 		log.Println("Failed to create users table")
 	}
+
 	log.Println("Created users table")
+}
+
+func (s *Store) getConnectionString() string {
+	db_user := os.Getenv("DB_USER")
+	db_name := os.Getenv("DB_NAME")
+	db_password := os.Getenv("DB_PASSWORD")
+	db_host := os.Getenv("DB_HOST")
+	db_port := os.Getenv("DB_PORT")
+
+	return fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", db_host, db_port, db_user, db_name, db_password)
+
 }
