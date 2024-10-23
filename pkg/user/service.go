@@ -2,7 +2,7 @@ package user
 
 import (
 	"akshidas/e-com/pkg/db"
-	"akshidas/e-com/pkg/types"
+	"akshidas/e-com/pkg/model"
 	"database/sql"
 	"fmt"
 	"log"
@@ -13,7 +13,7 @@ type UserService struct {
 	DB *sql.DB
 }
 
-func (u *UserService) Get() ([]*types.User, error) {
+func (u *UserService) Get() ([]*model.User, error) {
 	query := `select * from users;`
 
 	rows, err := u.DB.Query(query)
@@ -21,7 +21,7 @@ func (u *UserService) Get() ([]*types.User, error) {
 		return nil, err
 	}
 
-	users := []*types.User{}
+	users := []*model.User{}
 	for rows.Next() {
 		user, err := scanIntoUser(rows)
 		if err != nil {
@@ -32,11 +32,11 @@ func (u *UserService) Get() ([]*types.User, error) {
 	return users, nil
 }
 
-func (u *UserService) GetOne(id int) (*types.User, error) {
+func (u *UserService) GetOne(id int) (*model.User, error) {
 	query := `select * from users where id=$1`
 	row := u.DB.QueryRow(query, id)
 
-	user := &types.User{}
+	user := &model.User{}
 	if err := row.Scan(&user.ID,
 		&user.FirstName,
 		&user.LastName,
@@ -50,7 +50,7 @@ func (u *UserService) GetOne(id int) (*types.User, error) {
 	return user, nil
 }
 
-func (u *UserService) Create(user *types.User) (string, error) {
+func (u *UserService) Create(user *model.User) (string, error) {
 	query := `insert into 
 	users (first_name, last_name, password, email, created_at)
 	values($1, $2, $3, $4, $5)
@@ -71,7 +71,7 @@ func (u *UserService) Create(user *types.User) (string, error) {
 	)
 	log.Printf("Created user %v", user)
 
-	savedUser := &types.User{}
+	savedUser := &model.User{}
 	if err := row.Scan(&savedUser.ID); err != nil {
 		log.Printf("failed to scan user after saving %v", err)
 		return "", err
@@ -80,7 +80,7 @@ func (u *UserService) Create(user *types.User) (string, error) {
 	return createJwt(savedUser)
 }
 
-func (u *UserService) Update(user *types.User) (*types.User, error) {
+func (u *UserService) Update(user *model.User) (*model.User, error) {
 	query := `update users set first_name=$1, last_name=$2, email=$3 where id=$4`
 	result, err := u.DB.Exec(query, user.FirstName, user.LastName, user.Email, user.ID)
 

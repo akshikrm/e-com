@@ -1,7 +1,7 @@
 package user
 
 import (
-	"akshidas/e-com/pkg/types"
+	"akshidas/e-com/pkg/model"
 	"database/sql"
 	"log"
 	"os"
@@ -11,7 +11,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func createJwt(u *types.User) (string, error) {
+func createJwt(u *model.User) (string, error) {
 	claims := jwt.MapClaims{
 		"exp": jwt.NewNumericDate(time.Unix(1516239022, 0)),
 		"sub": u.ID,
@@ -40,8 +40,8 @@ func validateHash(hashedpassword []byte, plainTextPassword string) error {
 	return nil
 }
 
-func scanIntoUser(rows *sql.Rows) (*types.User, error) {
-	user := &types.User{}
+func scanIntoUser(rows *sql.Rows) (*model.User, error) {
+	user := &model.User{}
 	err := rows.Scan(
 		&user.ID,
 		&user.FirstName,

@@ -1,7 +1,7 @@
 package api
 
 import (
-	"akshidas/e-com/pkg/types"
+	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/user"
 	"encoding/json"
 	"fmt"
@@ -9,7 +9,7 @@ import (
 )
 
 type UserApi struct {
-	UserService types.UserService
+	UserService model.UserService
 }
 
 func (u *UserApi) GetAll(w http.ResponseWriter, r *http.Request) error {
@@ -39,7 +39,7 @@ func (u *UserApi) GetOne(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (u *UserApi) Create(w http.ResponseWriter, r *http.Request) error {
-	a := &types.User{}
+	a := &model.User{}
 	if err := json.NewDecoder(r.Body).Decode(a); err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func (u *UserApi) Create(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (u *UserApi) Update(w http.ResponseWriter, r *http.Request) error {
-	a := &types.User{}
+	a := &model.User{}
 	if err := json.NewDecoder(r.Body).Decode(a); err != nil {
 		return err
 	}
