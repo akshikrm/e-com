@@ -34,16 +34,20 @@ func (u *UserService) Get() ([]*types.User, error) {
 
 func (u *UserService) GetOne(id int) (*types.User, error) {
 	query := `select * from users where id=$1`
-	rows, err := u.DB.Query(query, id)
-	if err != nil {
-		return nil, err
-	}
+	row := u.DB.QueryRow(query, id)
 
-	for rows.Next() {
-		return scanIntoUser(rows)
+	user := &types.User{}
+	if err := row.Scan(&user.ID,
+		&user.FirstName,
+		&user.LastName,
+		&user.Email,
+		&user.Password,
+		&user.CreatedAt,
+	); err != nil {
+		log.Printf("user with id %d not found due to %s", id, err)
+		return nil, UserNotFound
 	}
-
-	return nil, UserNotFound
+	return user, nil
 }
 
 func (u *UserService) Create(user *types.User) (string, error) {
@@ -65,7 +69,6 @@ func (u *UserService) Create(user *types.User) (string, error) {
 		user.Email,
 		time.Now().UTC(),
 	)
-
 	log.Printf("Created user %v", user)
 
 	savedUser := &types.User{}
@@ -73,6 +76,7 @@ func (u *UserService) Create(user *types.User) (string, error) {
 		log.Printf("failed to scan user after saving %v", err)
 		return "", err
 	}
+
 	return createJwt(savedUser)
 }
 
