@@ -33,6 +33,12 @@ type UserModeler interface {
 	Delete(id int) error
 }
 
+func NewUserModel(db *sql.DB) *UserModel {
+	return &UserModel{
+		DB: db,
+	}
+}
+
 type UserModel struct {
 	DB *sql.DB
 }
@@ -76,7 +82,7 @@ func (m *UserModel) GetOne(id int) (*User, error) {
 	return user, nil
 }
 
-func (m *UserModel) Create(user User) (int, error) {
+func (m *UserModel) Create(user *User) (int, error) {
 	query := `insert into 
 	users (first_name, last_name, password, email, created_at)
 	values($1, $2, $3, $4, $5)
@@ -114,6 +120,7 @@ func (m *UserModel) Update(user *User) error {
 		log.Printf("updated %d rows", count)
 		return utils.NotFound
 	}
+
 	return nil
 }
 

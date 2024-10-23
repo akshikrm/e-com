@@ -12,9 +12,9 @@ import (
 
 // Registers user routes to the passed in router
 func RegisterUserApi(r *http.ServeMux, db *db.PostgresStore) {
-	userApi := &UserApi{
-		UserService: services.NewUserService(db),
-	}
+	userModel := model.NewUserModel(db.DB)
+	userService := services.NewUserService(userModel)
+	userApi := &UserApi{UserService: userService}
 
 	r.HandleFunc("GET /users", routeHandler(userApi.GetAll))
 	r.HandleFunc("POST /users", routeHandler(userApi.Create))
