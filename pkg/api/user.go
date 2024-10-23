@@ -6,6 +6,7 @@ import (
 	"akshidas/e-com/pkg/user"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -116,6 +117,7 @@ type ApiResponse struct {
 
 func RouteHandler(f apiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("%s: %s", r.Method, r.URL.Path)
 		if err := f(w, r); err != nil {
 			writeError(w, http.StatusBadRequest, err)
 		}
