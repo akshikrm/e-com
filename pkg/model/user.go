@@ -1,6 +1,7 @@
 package model
 
 import (
+	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
 	"database/sql"
 	"fmt"
@@ -31,7 +32,7 @@ func (m *UserModel) Get() ([]*User, error) {
 
 	users := []*User{}
 	for rows.Next() {
-		user, err := scanIntoUser(rows)
+		user, err := ScanRows(rows)
 		if err != nil {
 			return nil, utils.Failed
 		}
@@ -60,7 +61,28 @@ func (m *UserModel) GetOne(id int) (*User, error) {
 	return user, nil
 }
 
-func (m *UserModel) Create(user *User) (int, error) {
+func (m *UserModel) GetUserByEmail(email string) (*User, error) {
+	query := `select * from users where email=$1`
+	row := m.DB.QueryRow(query, email)
+
+	user := &User{}
+	if err := row.Scan(
+		&user.ID,
+		&user.FirstName,
+		&user.LastName,
+		&user.Email,
+		&user.Password,
+		&user.CreatedAt,
+	); err != nil {
+		log.Printf("user with id %s not found due to %s", email, err)
+		return nil, utils.NotFound
+	}
+
+	return user, nil
+
+}
+
+func (m *UserModel) Create(user *types.CreateUserRequest) (int, error) {
 	query := `insert into 
 	users (first_name, last_name, password, email, created_at)
 	values($1, $2, $3, $4, $5)
@@ -85,9 +107,9 @@ func (m *UserModel) Create(user *User) (int, error) {
 	return savedUser.ID, nil
 }
 
-func (m *UserModel) Update(user *User) error {
+func (m *UserModel) Update(id int, user *types.UpdateUserRequest) error {
 	query := `update users set first_name=$1, last_name=$2, email=$3 where id=$4`
-	result, err := m.DB.Exec(query, user.FirstName, user.LastName, user.Email, user.ID)
+	result, err := m.DB.Exec(query, user.FirstName, user.LastName, user.Email, id)
 
 	if err != nil {
 		log.Printf("failed to update user %v due to %s", user, err)
@@ -118,7 +140,7 @@ func (m *UserModel) Delete(id int) error {
 	return nil
 }
 
-func scanIntoUser(rows *sql.Rows) (*User, error) {
+func ScanRows(rows *sql.Rows) (*User, error) {
 	user := &User{}
 	err := rows.Scan(
 		&user.ID,
@@ -130,7 +152,7 @@ func scanIntoUser(rows *sql.Rows) (*User, error) {
 	)
 
 	if err != nil {
-		log.Printf("scan into user: %s", err)
+		log.Printf("scan into user failed due to %s", err)
 	}
 
 	return user, err
