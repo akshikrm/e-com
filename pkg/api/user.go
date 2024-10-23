@@ -44,12 +44,12 @@ func (u *UserApi) Create(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	err := u.UserService.Create(a)
+	token, err := u.UserService.Create(a)
 	if err != nil {
 		return err
 	}
 
-	return writeJson(w, http.StatusCreated, "created user")
+	return writeJson(w, http.StatusCreated, token)
 }
 
 func (u *UserApi) Update(w http.ResponseWriter, r *http.Request) error {

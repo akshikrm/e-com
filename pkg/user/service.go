@@ -46,17 +46,19 @@ func (u *UserService) GetOne(id int) (*types.User, error) {
 	return nil, UserNotFound
 }
 
-func (u *UserService) Create(user *types.User) error {
+func (u *UserService) Create(user *types.User) (string, error) {
 	query := `insert into 
 	users (first_name, last_name, password, email, created_at)
-	values($1, $2, $3, $4, $5)`
+	values($1, $2, $3, $4, $5)
+	returning id
+	`
 
 	hashedPassword, err := hashPassword([]byte(user.Password))
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	_, err = u.DB.Exec(query,
+	row := u.DB.QueryRow(query,
 		user.FirstName,
 		user.LastName,
 		hashedPassword,
@@ -65,7 +67,13 @@ func (u *UserService) Create(user *types.User) error {
 	)
 
 	log.Printf("Created user %v", user)
-	return err
+
+	savedUser := &types.User{}
+	if err := row.Scan(&savedUser.ID); err != nil {
+		log.Printf("failed to scan user after saving %v", err)
+		return "", err
+	}
+	return createJwt(savedUser)
 }
 
 func (u *UserService) Update(user *types.User) (*types.User, error) {

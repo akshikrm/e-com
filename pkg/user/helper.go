@@ -3,9 +3,26 @@ package user
 import (
 	"akshidas/e-com/pkg/types"
 	"database/sql"
-	"golang.org/x/crypto/bcrypt"
 	"log"
+	"os"
+	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
 )
+
+func createJwt(u *types.User) (string, error) {
+	claims := jwt.MapClaims{
+		"exp": jwt.NewNumericDate(time.Unix(1516239022, 0)),
+		"sub": u.ID,
+		"iat": time.Now(),
+	}
+
+	secret := os.Getenv("JWT_SECRET")
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	return token.SignedString([]byte(secret))
+}
 
 func hashPassword(password []byte) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
