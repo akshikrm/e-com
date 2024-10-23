@@ -46,18 +46,12 @@ func (m *UserModel) GetOne(id int) (*User, error) {
 	query := `select * from users where id=$1`
 	row := m.DB.QueryRow(query, id)
 
-	user := &User{}
-	if err := row.Scan(
-		&user.ID,
-		&user.FirstName,
-		&user.LastName,
-		&user.Email,
-		&user.Password,
-		&user.CreatedAt,
-	); err != nil {
+	user, err := ScanRow(row)
+	if err != nil {
 		log.Printf("user with id %d not found due to %s", id, err)
 		return nil, utils.NotFound
 	}
+
 	return user, nil
 }
 
@@ -65,16 +59,9 @@ func (m *UserModel) GetUserByEmail(email string) (*User, error) {
 	query := `select * from users where email=$1`
 	row := m.DB.QueryRow(query, email)
 
-	user := &User{}
-	if err := row.Scan(
-		&user.ID,
-		&user.FirstName,
-		&user.LastName,
-		&user.Email,
-		&user.Password,
-		&user.CreatedAt,
-	); err != nil {
-		log.Printf("user with id %s not found due to %s", email, err)
+	user, err := ScanRow(row)
+	if err != nil {
+		log.Printf("user with email %s not found due to %s", email, err)
 		return nil, utils.NotFound
 	}
 
@@ -82,7 +69,7 @@ func (m *UserModel) GetUserByEmail(email string) (*User, error) {
 
 }
 
-func (m *UserModel) Create(user *types.CreateUserRequest) (int, error) {
+func (m *UserModel) Create(user types.CreateUserRequest) (int, error) {
 	query := `insert into 
 	users (first_name, last_name, password, email, created_at)
 	values($1, $2, $3, $4, $5)
@@ -107,7 +94,7 @@ func (m *UserModel) Create(user *types.CreateUserRequest) (int, error) {
 	return savedUser.ID, nil
 }
 
-func (m *UserModel) Update(id int, user *types.UpdateUserRequest) error {
+func (m *UserModel) Update(id int, user types.UpdateUserRequest) error {
 	query := `update users set first_name=$1, last_name=$2, email=$3 where id=$4`
 	result, err := m.DB.Exec(query, user.FirstName, user.LastName, user.Email, id)
 
@@ -154,6 +141,20 @@ func ScanRows(rows *sql.Rows) (*User, error) {
 	if err != nil {
 		log.Printf("scan into user failed due to %s", err)
 	}
+
+	return user, err
+}
+
+func ScanRow(row *sql.Row) (*User, error) {
+	user := &User{}
+	err := row.Scan(
+		&user.ID,
+		&user.FirstName,
+		&user.LastName,
+		&user.Email,
+		&user.Password,
+		&user.CreatedAt,
+	)
 
 	return user, err
 }

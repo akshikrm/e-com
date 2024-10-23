@@ -12,9 +12,9 @@ import (
 type UserServicer interface {
 	Get() ([]*model.User, error)
 	GetOne(id int) (*model.User, error)
-	Login(*types.LoginUserRequest) (string, error)
-	Create(user *types.CreateUserRequest) (string, error)
-	Update(id int, user *types.UpdateUserRequest) (*model.User, error)
+	Login(types.LoginUserRequest) (string, error)
+	Create(user types.CreateUserRequest) (string, error)
+	Update(id int, user types.UpdateUserRequest) (*model.User, error)
 	Delete(id int) error
 }
 
@@ -55,7 +55,7 @@ func (u *UserApi) Login(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	token, err := u.UserService.Login(a)
+	token, err := u.UserService.Login(*a)
 	if err != nil {
 		return err
 	}
@@ -69,7 +69,7 @@ func (u *UserApi) Create(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	token, err := u.UserService.Create(a)
+	token, err := u.UserService.Create(*a)
 	if err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func (u *UserApi) Update(w http.ResponseWriter, r *http.Request) error {
 
 	id, err := parseId(r.PathValue("id"))
 
-	user, err := u.UserService.Update(id, a)
+	user, err := u.UserService.Update(id, *a)
 	if err != nil {
 		return err
 	}
