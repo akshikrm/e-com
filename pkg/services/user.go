@@ -1,8 +1,9 @@
-package user
+package services
 
 import (
 	"akshidas/e-com/pkg/db"
 	"akshidas/e-com/pkg/model"
+	"akshidas/e-com/pkg/utils"
 	"database/sql"
 	"fmt"
 	"log"
@@ -45,7 +46,7 @@ func (u *UserService) GetOne(id int) (*model.User, error) {
 		&user.CreatedAt,
 	); err != nil {
 		log.Printf("user with id %d not found due to %s", id, err)
-		return nil, UserNotFound
+		return nil, utils.NotFound
 	}
 	return user, nil
 }
@@ -57,7 +58,7 @@ func (u *UserService) Create(user *model.User) (string, error) {
 	returning id
 	`
 
-	hashedPassword, err := hashPassword([]byte(user.Password))
+	hashedPassword, err := utils.HashPassword([]byte(user.Password))
 	if err != nil {
 		return "", err
 	}
@@ -77,7 +78,7 @@ func (u *UserService) Create(user *model.User) (string, error) {
 		return "", err
 	}
 
-	return createJwt(savedUser)
+	return utils.CreateJwt(savedUser)
 }
 
 func (u *UserService) Update(user *model.User) (*model.User, error) {
@@ -91,7 +92,7 @@ func (u *UserService) Update(user *model.User) (*model.User, error) {
 
 	if count, _ := result.RowsAffected(); count == 0 {
 		log.Printf("updated %d rows", count)
-		return nil, UserNotFound
+		return nil, utils.NotFound
 	}
 
 	return u.GetOne(user.ID)
@@ -101,7 +102,7 @@ func (u *UserService) Delete(id int) error {
 	query := "delete from users where id=$1"
 	result, err := u.DB.Exec(query, id)
 	if count, _ := result.RowsAffected(); count == 0 {
-		return UserNotFound
+		return utils.NotFound
 	}
 
 	if err != nil {
@@ -113,4 +114,22 @@ func (u *UserService) Delete(id int) error {
 
 func NewUserService(db *db.PostgresStore) *UserService {
 	return &UserService{DB: db.DB}
+}
+
+func scanIntoUser(rows *sql.Rows) (*model.User, error) {
+	user := &model.User{}
+	err := rows.Scan(
+		&user.ID,
+		&user.FirstName,
+		&user.LastName,
+		&user.Email,
+		&user.Password,
+		&user.CreatedAt,
+	)
+
+	if err != nil {
+		log.Printf("scan into user: %s", err)
+	}
+
+	return user, err
 }

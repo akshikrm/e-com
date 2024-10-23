@@ -1,6 +1,6 @@
-package user
+package utils
 
 import "errors"
 
-var UserNotFound = errors.New("not found")
+var NotFound = errors.New("not found")
 var Unauthorized = errors.New("unauthorized")

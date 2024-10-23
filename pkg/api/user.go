@@ -1,15 +1,30 @@
 package api
 
 import (
+	"akshidas/e-com/pkg/db"
 	"akshidas/e-com/pkg/model"
-	"akshidas/e-com/pkg/user"
+	"akshidas/e-com/pkg/services"
+	"akshidas/e-com/pkg/utils"
 	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
+// Registers user routes to the passed in router
+func RegisterUserApi(r *http.ServeMux, db *db.PostgresStore) {
+	userApi := &UserApi{
+		UserService: services.NewUserService(db),
+	}
+
+	r.HandleFunc("GET /users", routeHandler(userApi.GetAll))
+	r.HandleFunc("POST /users", routeHandler(userApi.Create))
+	r.HandleFunc("GET /users/{id}", routeHandler(userApi.GetOne))
+	r.HandleFunc("PUT /users/{id}", routeHandler(userApi.Update))
+	r.HandleFunc("DELETE /users/{id}", routeHandler(userApi.Delete))
+}
+
 type UserApi struct {
-	UserService model.UserService
+	UserService model.UserServicer
 }
 
 func (u *UserApi) GetAll(w http.ResponseWriter, r *http.Request) error {
@@ -30,9 +45,10 @@ func (u *UserApi) GetOne(w http.ResponseWriter, r *http.Request) error {
 	foundUser, err := u.UserService.GetOne(id)
 
 	if err != nil {
-		if err == user.UserNotFound {
-			return writeError(w, http.StatusNotFound, err)
+		if err == utils.NotFound {
+			return writeError(w, http.StatusNotFound, fmt.Errorf("user not found"))
 		}
+		return err
 	}
 
 	return writeJson(w, http.StatusOK, foundUser)
@@ -76,7 +92,7 @@ func (u *UserApi) Delete(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if err := u.UserService.Delete(id); err != nil {
-		if err == user.UserNotFound {
+		if err == utils.NotFound {
 			return writeError(w, http.StatusNotFound, err)
 		}
 		return err

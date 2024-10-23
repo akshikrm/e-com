@@ -11,7 +11,7 @@ type User struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-type UserService interface {
+type UserServicer interface {
 	Get() ([]*User, error)
 	GetOne(id int) (*User, error)
 	Create(user *User) (string, error)
