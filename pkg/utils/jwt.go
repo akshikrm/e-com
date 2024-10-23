@@ -1,16 +1,15 @@
 package utils
 
 import (
-	"akshidas/e-com/pkg/model"
 	"github.com/golang-jwt/jwt/v5"
 	"os"
 	"time"
 )
 
-func CreateJwt(u *model.User) (string, error) {
+func CreateJwt(id int) (string, error) {
 	claims := jwt.MapClaims{
 		"exp": jwt.NewNumericDate(time.Unix(1516239022, 0)),
-		"sub": u.ID,
+		"sub": id,
 		"iat": time.Now(),
 	}
 

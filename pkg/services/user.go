@@ -78,7 +78,7 @@ func (u *UserService) Create(user *model.User) (string, error) {
 		return "", err
 	}
 
-	return utils.CreateJwt(savedUser)
+	return utils.CreateJwt(savedUser.ID)
 }
 
 func (u *UserService) Update(user *model.User) (*model.User, error) {
@@ -101,6 +101,7 @@ func (u *UserService) Update(user *model.User) (*model.User, error) {
 func (u *UserService) Delete(id int) error {
 	query := "delete from users where id=$1"
 	result, err := u.DB.Exec(query, id)
+
 	if count, _ := result.RowsAffected(); count == 0 {
 		return utils.NotFound
 	}
