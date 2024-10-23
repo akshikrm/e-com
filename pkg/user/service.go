@@ -5,6 +5,8 @@ import (
 	"akshidas/e-com/pkg/types"
 	"database/sql"
 	"errors"
+	"fmt"
+	"log"
 	"time"
 )
 
@@ -52,11 +54,11 @@ func (u *UserService) GetOne(id int) (*types.User, error) {
 }
 
 func (u *UserService) Create(user *types.User) error {
-	sqlQuery := `insert into 
+	query := `insert into 
 	users (first_name, last_name, password, email, created_at)
 	values($1, $2, $3, $4, $5)`
 
-	_, err := u.DB.Exec(sqlQuery,
+	_, err := u.DB.Exec(query,
 		user.FirstName,
 		user.LastName,
 		user.Password,
@@ -67,10 +69,21 @@ func (u *UserService) Create(user *types.User) error {
 	return err
 }
 
-func (u *UserService) Update(user types.User) error {
-	return nil
-}
+func (u *UserService) Update(user *types.User) (*types.User, error) {
+	query := `update users set first_name=$1, last_name=$2, email=$3 where id=$4`
+	result, err := u.DB.Exec(query, user.FirstName, user.LastName, user.Email, user.ID)
 
+	if err != nil {
+		log.Printf("failed to update user %v due to %s", user, err)
+		return nil, fmt.Errorf("failed to update")
+	}
+	if count, _ := result.RowsAffected(); count == 0 {
+		log.Printf("updated %d rows", count)
+		return nil, UserNotFound
+	}
+
+	return u.GetOne(user.ID)
+}
 func (u *UserService) Delete(id int) error {
 	query := "delete from users where id=$1"
 	result, err := u.DB.Exec(query, id)
@@ -95,6 +108,6 @@ func scanIntoUser(rows *sql.Rows) (*types.User, error) {
 		&user.Password,
 		&user.CreatedAt,
 	)
-
+	log.Printf("scan into user: %s", err)
 	return user, err
 }

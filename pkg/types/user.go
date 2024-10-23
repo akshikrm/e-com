@@ -15,7 +15,7 @@ type UserService interface {
 	Get() ([]*User, error)
 	GetOne(id int) (*User, error)
 	Create(user *User) error
-	Update(user User) error
+	Update(user *User) (*User, error)
 	Delete(id int) error
 }
 
