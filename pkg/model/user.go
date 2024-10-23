@@ -17,28 +17,6 @@ type User struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-type UserServicer interface {
-	Get() ([]*User, error)
-	GetOne(id int) (*User, error)
-	Create(user *User) (string, error)
-	Update(user *User) (*User, error)
-	Delete(id int) error
-}
-
-type UserModeler interface {
-	Get() ([]*User, error)
-	GetOne(id int) (*User, error)
-	Create(user *User) (int, error)
-	Update(user *User) error
-	Delete(id int) error
-}
-
-func NewUserModel(db *sql.DB) *UserModel {
-	return &UserModel{
-		DB: db,
-	}
-}
-
 type UserModel struct {
 	DB *sql.DB
 }
@@ -156,4 +134,10 @@ func scanIntoUser(rows *sql.Rows) (*User, error) {
 	}
 
 	return user, err
+}
+
+func NewUserModel(store *sql.DB) *UserModel {
+	return &UserModel{
+		DB: store,
+	}
 }

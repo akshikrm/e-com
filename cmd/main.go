@@ -13,7 +13,7 @@ func main() {
 	}
 
 	database := &db.PostgresStore{}
-	db.Connect(database)
+	database.Connect()
 
 	server := &server.APIServer{
 		Status: "Server is up and running",

@@ -30,7 +30,7 @@ func writeError(w http.ResponseWriter, status int, err error) error {
 	return json.NewEncoder(w).Encode(&ApiError{Error: err.Error()})
 }
 
-func routeHandler(f apiFunc) http.HandlerFunc {
+func RouteHandler(f apiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%s: %s", r.Method, r.URL.Path)
 		if err := f(w, r); err != nil {

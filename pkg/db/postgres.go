@@ -8,7 +8,6 @@ import (
 	"os"
 )
 
-// Implements Database Interface
 type PostgresStore struct {
 	DB *sql.DB
 }

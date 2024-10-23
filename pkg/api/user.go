@@ -1,30 +1,23 @@
 package api
 
 import (
-	"akshidas/e-com/pkg/db"
 	"akshidas/e-com/pkg/model"
-	"akshidas/e-com/pkg/services"
 	"akshidas/e-com/pkg/utils"
 	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
-// Registers user routes to the passed in router
-func RegisterUserApi(r *http.ServeMux, db *db.PostgresStore) {
-	userModel := model.NewUserModel(db.DB)
-	userService := services.NewUserService(userModel)
-	userApi := &UserApi{UserService: userService}
-
-	r.HandleFunc("GET /users", routeHandler(userApi.GetAll))
-	r.HandleFunc("POST /users", routeHandler(userApi.Create))
-	r.HandleFunc("GET /users/{id}", routeHandler(userApi.GetOne))
-	r.HandleFunc("PUT /users/{id}", routeHandler(userApi.Update))
-	r.HandleFunc("DELETE /users/{id}", routeHandler(userApi.Delete))
+type UserServicer interface {
+	Get() ([]*model.User, error)
+	GetOne(id int) (*model.User, error)
+	Create(user *model.User) (string, error)
+	Update(user *model.User) (*model.User, error)
+	Delete(id int) error
 }
 
 type UserApi struct {
-	UserService model.UserServicer
+	UserService UserServicer
 }
 
 func (u *UserApi) GetAll(w http.ResponseWriter, r *http.Request) error {
@@ -100,3 +93,9 @@ func (u *UserApi) Delete(w http.ResponseWriter, r *http.Request) error {
 
 	return writeJson(w, http.StatusOK, "deleted successfully")
 }
+
+func NewUserApi(userService UserServicer) *UserApi {
+	return &UserApi{UserService: userService}
+}
+
+// Registers user routes to the passed in router

@@ -5,8 +5,16 @@ import (
 	"akshidas/e-com/pkg/utils"
 )
 
+type UserModeler interface {
+	Get() ([]*model.User, error)
+	GetOne(id int) (*model.User, error)
+	Create(user *model.User) (int, error)
+	Update(user *model.User) error
+	Delete(id int) error
+}
+
 type UserService struct {
-	db *model.UserModel
+	db UserModeler
 }
 
 func (u *UserService) Get() ([]*model.User, error) {
@@ -40,6 +48,6 @@ func (u *UserService) Delete(id int) error {
 	return u.db.Delete(id)
 }
 
-func NewUserService(db *model.UserModel) *UserService {
+func NewUserService(db UserModeler) *UserService {
 	return &UserService{db: db}
 }
