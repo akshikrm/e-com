@@ -4,17 +4,10 @@ import (
 	"akshidas/e-com/pkg/db"
 	"akshidas/e-com/pkg/types"
 	"database/sql"
-	"errors"
 	"fmt"
 	"log"
 	"time"
 )
-
-var UserNotFound = errors.New("not found")
-
-func NewUserService(db *db.PostgresStore) *UserService {
-	return &UserService{DB: db.DB}
-}
 
 type UserService struct {
 	DB *sql.DB
@@ -58,14 +51,20 @@ func (u *UserService) Create(user *types.User) error {
 	users (first_name, last_name, password, email, created_at)
 	values($1, $2, $3, $4, $5)`
 
-	_, err := u.DB.Exec(query,
+	hashedPassword, err := hashPassword([]byte(user.Password))
+	if err != nil {
+		return err
+	}
+
+	_, err = u.DB.Exec(query,
 		user.FirstName,
 		user.LastName,
-		user.Password,
+		hashedPassword,
 		user.Email,
 		time.Now().UTC(),
 	)
 
+	log.Printf("Created user %v", user)
 	return err
 }
 
@@ -77,6 +76,7 @@ func (u *UserService) Update(user *types.User) (*types.User, error) {
 		log.Printf("failed to update user %v due to %s", user, err)
 		return nil, fmt.Errorf("failed to update")
 	}
+
 	if count, _ := result.RowsAffected(); count == 0 {
 		log.Printf("updated %d rows", count)
 		return nil, UserNotFound
@@ -84,6 +84,7 @@ func (u *UserService) Update(user *types.User) (*types.User, error) {
 
 	return u.GetOne(user.ID)
 }
+
 func (u *UserService) Delete(id int) error {
 	query := "delete from users where id=$1"
 	result, err := u.DB.Exec(query, id)
@@ -98,20 +99,6 @@ func (u *UserService) Delete(id int) error {
 	return nil
 }
 
-func scanIntoUser(rows *sql.Rows) (*types.User, error) {
-	user := &types.User{}
-	err := rows.Scan(
-		&user.ID,
-		&user.FirstName,
-		&user.LastName,
-		&user.Email,
-		&user.Password,
-		&user.CreatedAt,
-	)
-
-	if err != nil {
-		log.Printf("scan into user: %s", err)
-	}
-
-	return user, err
+func NewUserService(db *db.PostgresStore) *UserService {
+	return &UserService{DB: db.DB}
 }
