@@ -108,6 +108,10 @@ func scanIntoUser(rows *sql.Rows) (*types.User, error) {
 		&user.Password,
 		&user.CreatedAt,
 	)
-	log.Printf("scan into user: %s", err)
+
+	if err != nil {
+		log.Printf("scan into user: %s", err)
+	}
+
 	return user, err
 }
