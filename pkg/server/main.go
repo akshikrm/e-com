@@ -7,6 +7,7 @@ import (
 	"akshidas/e-com/pkg/services"
 	"log"
 	"net/http"
+	"time"
 )
 
 type Database interface {
@@ -20,6 +21,20 @@ type APIServer struct {
 	Store  Database
 }
 
+type Logger struct {
+	handler http.Handler
+}
+
+func (l *Logger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	l.handler.ServeHTTP(w, r)
+	log.Printf("%s %s %v", r.Method, r.URL.Path, time.Since(start))
+}
+
+func NewLogger(handleToWrap http.Handler) *Logger {
+	return &Logger{handleToWrap}
+}
+
 // Create a new server and registers routes to it
 func (s *APIServer) Run() {
 	router := http.NewServeMux()
@@ -29,8 +44,9 @@ func (s *APIServer) Run() {
 	})
 
 	RegisterUserApi(router, s.Store)
+	wrappedRouter := NewLogger(router)
 	log.Printf("🚀 Server started on port %s", s.Port)
-	log.Fatal(http.ListenAndServe(s.Port, router))
+	log.Fatal(http.ListenAndServe(s.Port, wrappedRouter))
 }
 
 func RegisterUserApi(r *http.ServeMux, store Database) {
