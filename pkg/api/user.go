@@ -71,6 +71,9 @@ func (u *UserApi) Login(w http.ResponseWriter, r *http.Request) error {
 func (u *UserApi) Create(w http.ResponseWriter, r *http.Request) error {
 	a := &types.CreateUserRequest{}
 	if err := json.NewDecoder(r.Body).Decode(a); err != nil {
+		if err == io.EOF {
+			return errors.New("invalid request")
+		}
 		return err
 	}
 

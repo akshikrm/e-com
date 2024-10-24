@@ -4,7 +4,6 @@ import (
 	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
 	"database/sql"
-	"fmt"
 	"log"
 	"time"
 )
@@ -27,14 +26,15 @@ func (m *UserModel) Get() ([]*User, error) {
 
 	rows, err := m.DB.Query(query)
 	if err != nil {
-		return nil, err
+		log.Printf("failed to retrieve user %s", err)
+		return nil, utils.ServerError
 	}
 
 	users := []*User{}
 	for rows.Next() {
 		user, err := ScanRows(rows)
 		if err != nil {
-			return nil, utils.Failed
+			return nil, utils.ServerError
 		}
 		users = append(users, user)
 	}
@@ -87,8 +87,8 @@ func (m *UserModel) Create(user types.CreateUserRequest) (int, error) {
 
 	savedUser := User{}
 	if err := row.Scan(&savedUser.ID); err != nil {
-		log.Printf("failed to scan user after saving %v", err)
-		return 0, err
+		log.Printf("failed to scan user after writing %d %s", savedUser.ID, err)
+		return 0, utils.ServerError
 	}
 
 	return savedUser.ID, nil
@@ -100,7 +100,7 @@ func (m *UserModel) Update(id int, user types.UpdateUserRequest) error {
 
 	if err != nil {
 		log.Printf("failed to update user %v due to %s", user, err)
-		return fmt.Errorf("failed to update")
+		return utils.ServerError
 	}
 
 	if count, _ := result.RowsAffected(); count == 0 {
@@ -117,7 +117,7 @@ func (m *UserModel) Delete(id int) error {
 
 	if err != nil {
 		log.Printf("failed to delete %d due to %s", id, err)
-		return utils.Failed
+		return utils.ServerError
 	}
 
 	if count, _ := result.RowsAffected(); count == 0 {

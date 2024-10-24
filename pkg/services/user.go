@@ -34,7 +34,7 @@ func (u *UserService) Login(payload types.LoginUserRequest) (string, error) {
 
 	token, err := utils.CreateJwt(user.ID)
 	if err != nil {
-		return "", fmt.Errorf("failed to generate token")
+		return "", err
 	}
 
 	return token, nil
@@ -56,7 +56,13 @@ func (u *UserService) Create(user types.CreateUserRequest) (string, error) {
 
 	user.Password = hashedPassword
 	userId, err := u.db.Create(user)
-	return utils.CreateJwt(userId)
+	token, err := utils.CreateJwt(userId)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
+
 }
 
 func (u *UserService) Update(id int, user types.UpdateUserRequest) (*model.User, error) {
