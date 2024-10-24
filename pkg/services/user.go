@@ -4,7 +4,6 @@ import (
 	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
-	"fmt"
 	"log"
 )
 
