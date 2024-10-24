@@ -5,7 +5,9 @@ import (
 	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -52,6 +54,9 @@ func (u *UserApi) GetOne(w http.ResponseWriter, r *http.Request) error {
 func (u *UserApi) Login(w http.ResponseWriter, r *http.Request) error {
 	a := &types.LoginUserRequest{}
 	if err := json.NewDecoder(r.Body).Decode(a); err != nil {
+		if err == io.EOF {
+			return errors.New("invalid request")
+		}
 		return err
 	}
 
@@ -112,5 +117,3 @@ func (u *UserApi) Delete(w http.ResponseWriter, r *http.Request) error {
 func NewUserApi(userService UserServicer) *UserApi {
 	return &UserApi{UserService: userService}
 }
-
-// Registers user routes to the passed in router

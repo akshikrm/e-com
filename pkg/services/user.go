@@ -21,19 +21,17 @@ type UserService struct {
 	db UserModeler
 }
 
-func (u *UserService) Login(payolad types.LoginUserRequest) (string, error) {
-
-	user, err := u.db.GetUserByEmail(payolad.Email)
-
+func (u *UserService) Login(payload types.LoginUserRequest) (string, error) {
+	user, err := u.db.GetUserByEmail(payload.Email)
 	if err != nil {
 		return "", err
 	}
 
-	if err := utils.ValidateHash([]byte(user.Password), payolad.Password); err != nil {
-		fmt.Println(err)
-		log.Printf("invalid password for user %s", payolad.Email)
+	if err := utils.ValidateHash([]byte(user.Password), payload.Password); err != nil {
+		log.Printf("invalid password for user %s", payload.Email)
 		return "", utils.Unauthorized
 	}
+
 	token, err := utils.CreateJwt(user.ID)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate token")

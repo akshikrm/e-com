@@ -2,10 +2,12 @@ package db
 
 import (
 	"database/sql"
+	"flag"
 	"fmt"
-	_ "github.com/lib/pq"
 	"log"
 	"os"
+
+	_ "github.com/lib/pq"
 )
 
 type PostgresStore struct {
@@ -25,6 +27,14 @@ func (s *PostgresStore) Connect() error {
 
 	log.Print("🗃️ connected to database")
 	s.DB = db
+
+	seed := flag.Bool("initdb", false, "initialze db if true")
+
+	flag.Parse()
+	if *seed {
+		s.Init()
+	}
+
 	return nil
 }
 
@@ -46,6 +56,7 @@ func (s *PostgresStore) Init() {
 	}
 
 	log.Println("Created users table")
+	os.Exit(0)
 }
 
 func (s *PostgresStore) getConnectionString() string {
