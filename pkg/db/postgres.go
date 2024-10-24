@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -10,25 +11,61 @@ import (
 )
 
 type PostgresStore struct {
-	db *sql.DB
+	DB *sql.DB
 }
 
-func NewPostgresStore() (*PostgresStore, error) {
-	db_user := os.Getenv("DB_USER")
-	db_name := os.Getenv("DB_NAME")
-	db_password := os.Getenv("DB_PASSWORD")
-
-	connStr := fmt.Sprintf("user=%s dbname=%s password=%s sslmode=disable", db_user, db_name, db_password)
-	db, err := sql.Open("postgres", connStr)
+func (s *PostgresStore) Connect() error {
+	db, err := sql.Open("postgres", s.getConnectionString())
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if err := db.Ping(); err != nil {
-		return nil, err
+		return err
 	}
 
 	log.Print("🗃️ connected to database")
-	return &PostgresStore{db: db}, nil
+	s.DB = db
+
+	seed := flag.Bool("initdb", false, "initialze db if true")
+
+	flag.Parse()
+	if *seed {
+		s.Init()
+	}
+
+	return nil
+}
+
+func (s *PostgresStore) Init() {
+	log.Println("Creating users table")
+
+	query := `create table if not exists users (
+	id serial primary key,
+	first_name varchar(50),
+	last_name varchar(50),
+	email varchar(50),
+	password varchar,
+	created_at timestamp
+	)`
+
+	_, err := s.DB.Exec(query)
+	if err != nil {
+		log.Println("Failed to create users table")
+	}
+
+	log.Println("Created users table")
+	os.Exit(0)
+}
+
+func (s *PostgresStore) getConnectionString() string {
+	db_user := os.Getenv("DB_USER")
+	db_name := os.Getenv("DB_NAME")
+	db_password := os.Getenv("DB_PASSWORD")
+	db_host := os.Getenv("DB_HOST")
+	db_port := os.Getenv("DB_PORT")
+
+	return fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", db_host, db_port, db_user, db_name, db_password)
+
 }

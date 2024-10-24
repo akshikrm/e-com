@@ -3,3 +3,7 @@ build:
 
 run: build
 	@./dist
+
+initdb: build
+		@./dist --initdb 
+

@@ -1,36 +1,47 @@
 package server
 
 import (
-	"github.com/labstack/echo/v4"
+	"akshidas/e-com/pkg/api"
+	"akshidas/e-com/pkg/db"
+	"akshidas/e-com/pkg/model"
+	"akshidas/e-com/pkg/services"
+	"log"
 	"net/http"
 )
+
+type Database interface {
+	Connect() error
+	Init()
+}
 
 type APIServer struct {
 	Status string
 	Port   string
+	Store  Database
 }
 
-type User struct {
-	FistName string
-	LastName string
-	Email    string
-	Password string
-}
-
+// Create a new server and registers routes to it
 func (s *APIServer) Run() {
-	e := echo.New()
+	router := http.NewServeMux()
 
-	e.GET("/", func(c echo.Context) error {
-		return c.JSON(http.StatusCreated, s.Status)
+	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("server is up and running"))
 	})
 
-	e.GET("/users", GetAllUsers)
-
-	e.Logger.Fatal(e.Start(s.Port))
+	RegisterUserApi(router, s.Store)
+	log.Printf("🚀 Server started on port %s", s.Port)
+	log.Fatal(http.ListenAndServe(s.Port, router))
 }
 
-func GetAllUsers(c echo.Context) error {
-	users := &[]User{{FistName: "Akshay", LastName: "Krishna", Email: "akshay@bpract.com", Password: "root"}, {FistName: "Akshay", LastName: "Krishna", Email: "akshay@bpract.com", Password: "root"}}
+func RegisterUserApi(r *http.ServeMux, store Database) {
+	userModel := model.NewUserModel(store.(*db.PostgresStore).DB)
+	userService := services.NewUserService(userModel)
+	userApi := api.NewUserApi(userService)
 
-	return c.JSON(http.StatusCreated, users)
+	r.HandleFunc("GET /users", api.RouteHandler(userApi.GetAll))
+	r.HandleFunc("POST /users", api.RouteHandler(userApi.Create))
+	r.HandleFunc("POST /login", api.RouteHandler(userApi.Login))
+	r.HandleFunc("GET /users/{id}", api.RouteHandler(userApi.GetOne))
+	r.HandleFunc("PUT /users/{id}", api.RouteHandler(userApi.Update))
+	r.HandleFunc("DELETE /users/{id}", api.RouteHandler(userApi.Delete))
 }
