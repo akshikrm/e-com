@@ -39,9 +39,16 @@ func (s *PostgresStore) Connect() error {
 }
 
 func (s *PostgresStore) Init() {
-	log.Println("Creating users table")
+	CreateUserTable(s.DB)
+	CreateProfileTable(s.DB)
 
-	query := `create table if not exists users (
+	log.Println("successfully created all tables")
+	os.Exit(0)
+}
+
+func CreateUserTable(db *sql.DB) {
+	log.Println("Creating users table")
+	query := `CREATE TABLE IF NOT EXISTS users (
 	id serial primary key,
 	first_name varchar(50),
 	last_name varchar(50),
@@ -50,13 +57,33 @@ func (s *PostgresStore) Init() {
 	created_at timestamp
 	)`
 
-	_, err := s.DB.Exec(query)
+	_, err := db.Exec(query)
 	if err != nil {
-		log.Println("Failed to create users table")
+		log.Printf("Failed to create users table %s", err)
+		return
 	}
-
 	log.Println("Created users table")
-	os.Exit(0)
+}
+
+func CreateProfileTable(db *sql.DB) {
+	log.Println("Creating profiles table")
+	query := `CREATE TABLE IF NOT EXISTS profiles (
+	id serial primary key,
+	user_id int,
+	pincode varchar(10),
+	address_one varchar(100),
+	address_two varchar(100),
+	phone_number varchar(15),
+	created_at timestamp,
+	CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id)
+	)`
+
+	_, err := db.Exec(query)
+	if err != nil {
+		log.Printf("Failed to create profiles table %s", err)
+		return
+	}
+	log.Println("Created profiles table")
 }
 
 func (s *PostgresStore) getConnectionString() string {
