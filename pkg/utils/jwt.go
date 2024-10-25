@@ -2,17 +2,17 @@ package utils
 
 import (
 	"fmt"
+	"github.com/golang-jwt/jwt/v5"
 	"os"
 	"time"
-
-	"github.com/golang-jwt/jwt/v5"
 )
 
 func CreateJwt(id int) (string, error) {
+	now := time.Now()
 	claims := jwt.MapClaims{
-		"exp": jwt.NewNumericDate(time.Unix(1516239022, 0)),
+		"exp": now.Add(time.Hour * 24).Unix(),
 		"sub": id,
-		"iat": time.Now(),
+		"iat": now.Unix(),
 	}
 
 	secret := os.Getenv("JWT_SECRET")

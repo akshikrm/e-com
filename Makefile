@@ -2,8 +2,9 @@ build:
 	@go build -o dist cmd/main.go 
 
 run: build
+	@clear
 	@./dist
 
 initdb: build
-		@./dist --initdb 
+	@./dist --initdb 
 

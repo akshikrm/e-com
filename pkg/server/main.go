@@ -29,8 +29,9 @@ func (s *APIServer) Run() {
 	})
 
 	RegisterUserApi(router, s.Store)
+	wrappedRouter := NewLogger(router)
 	log.Printf("🚀 Server started on port %s", s.Port)
-	log.Fatal(http.ListenAndServe(s.Port, router))
+	log.Fatal(http.ListenAndServe(s.Port, wrappedRouter))
 }
 
 func RegisterUserApi(r *http.ServeMux, store Database) {
@@ -38,7 +39,7 @@ func RegisterUserApi(r *http.ServeMux, store Database) {
 	userService := services.NewUserService(userModel)
 	userApi := api.NewUserApi(userService)
 
-	r.HandleFunc("GET /users", api.RouteHandler(userApi.GetAll))
+	r.HandleFunc("GET /users", api.RouteHandler(api.IsAuthenticated(userApi.GetAll)))
 	r.HandleFunc("POST /users", api.RouteHandler(userApi.Create))
 	r.HandleFunc("POST /login", api.RouteHandler(userApi.Login))
 	r.HandleFunc("GET /users/{id}", api.RouteHandler(userApi.GetOne))

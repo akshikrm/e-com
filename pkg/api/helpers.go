@@ -1,9 +1,10 @@
 package api
 
 import (
+	"akshidas/e-com/pkg/utils"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -18,9 +19,29 @@ type ApiResponse struct {
 	Data any `json:"data"`
 }
 
+func IsAuthenticated(f apiFunc) apiFunc {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		authtoken := r.Header.Get("Authorization")
+		token, err := utils.ValidateJWT(authtoken)
+		if err != nil {
+			accessDenied(w)
+		}
+
+		if !token.Valid {
+			accessDenied(w)
+		}
+		return f(w, r)
+	}
+
+}
+
+func accessDenied(w http.ResponseWriter) error {
+	return writeError(w, http.StatusUnauthorized, errors.New("access denied"))
+
+}
+
 func RouteHandler(f apiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s: %s", r.Method, r.URL.Path)
 		if err := f(w, r); err != nil {
 			writeError(w, http.StatusInternalServerError, err)
 		}
