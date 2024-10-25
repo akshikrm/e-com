@@ -8,14 +8,6 @@ import (
 	"time"
 )
 
-type Profile struct {
-	Pincode     string `json:"pincode"`
-	AddressOne  string `json:"address_one"`
-	AddressTwo  string `json:"address_two"`
-	PhoneNubmer string `json:"phone_number"`
-	UserID      int    `json:"user_id"`
-}
-
 type User struct {
 	ID        int       `json:"id"`
 	FirstName string    `json:"first_name"`
