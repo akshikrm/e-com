@@ -7,7 +7,6 @@ import (
 	"akshidas/e-com/pkg/services"
 	"log"
 	"net/http"
-	"time"
 )
 
 type Database interface {
@@ -19,20 +18,6 @@ type APIServer struct {
 	Status string
 	Port   string
 	Store  Database
-}
-
-type Logger struct {
-	handler http.Handler
-}
-
-func (l *Logger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	start := time.Now()
-	l.handler.ServeHTTP(w, r)
-	log.Printf("%s %s %v", r.Method, r.URL.Path, time.Since(start))
-}
-
-func NewLogger(handleToWrap http.Handler) *Logger {
-	return &Logger{handleToWrap}
 }
 
 // Create a new server and registers routes to it
@@ -54,7 +39,7 @@ func RegisterUserApi(r *http.ServeMux, store Database) {
 	userService := services.NewUserService(userModel)
 	userApi := api.NewUserApi(userService)
 
-	r.HandleFunc("GET /users", api.RouteHandler(userApi.GetAll))
+	r.HandleFunc("GET /users", api.RouteHandler(api.IsAuthenticated(userApi.GetAll)))
 	r.HandleFunc("POST /users", api.RouteHandler(userApi.Create))
 	r.HandleFunc("POST /login", api.RouteHandler(userApi.Login))
 	r.HandleFunc("GET /users/{id}", api.RouteHandler(userApi.GetOne))
