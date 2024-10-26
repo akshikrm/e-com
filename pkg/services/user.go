@@ -64,11 +64,6 @@ func (u *UserService) Create(user types.CreateUserRequest) (string, error) {
 		return "", err
 	}
 
-	// userProfile := &types.NewProfileRequest{UserID: userId}
-	// if err := u.profileService.Create(*userProfile); err != nil {
-	// 	return "", err
-	// }
-
 	token, err := utils.CreateJwt(userId)
 	if err != nil {
 		return "", err
