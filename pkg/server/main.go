@@ -43,6 +43,7 @@ func RegisterUserApi(r *http.ServeMux, store Database) {
 
 	r.HandleFunc("GET /users", api.RouteHandler(userApi.GetAll))
 	r.HandleFunc("GET /profile", api.RouteHandler(api.IsAuthenticated(userApi.GetProfile)))
+	r.HandleFunc("PUT /profile", api.RouteHandler(api.IsAuthenticated(userApi.UpdateProfile)))
 	r.HandleFunc("POST /users", api.RouteHandler(userApi.Create))
 	r.HandleFunc("POST /login", api.RouteHandler(userApi.Login))
 	r.HandleFunc("GET /users/{id}", api.RouteHandler(userApi.GetOne))

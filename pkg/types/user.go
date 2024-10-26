@@ -26,3 +26,10 @@ type NewProfileRequest struct {
 	PhoneNumber string `json:"phone_number"`
 	UserID      int    `json:"user_id"`
 }
+
+type UpdateProfileRequest struct {
+	Pincode     string `json:"pincode"`
+	AddressOne  string `json:"address_one"`
+	AddressTwo  string `json:"address_two"`
+	PhoneNumber string `json:"phone_number"`
+}

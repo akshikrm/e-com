@@ -24,6 +24,7 @@ type UserServicer interface {
 type ProfileServicer interface {
 	GetByUserId(int) (*model.Profile, error)
 	Create(*types.NewProfileRequest) error
+	Update(int, *types.UpdateProfileRequest) (*model.Profile, error)
 }
 
 type UserApi struct {
@@ -59,6 +60,20 @@ func (u *UserApi) GetProfile(id int, w http.ResponseWriter, r *http.Request) err
 	}
 	return writeJson(w, http.StatusOK, userProfile)
 
+}
+
+func (u *UserApi) UpdateProfile(userId int, w http.ResponseWriter, r *http.Request) error {
+	a := &types.UpdateProfileRequest{}
+	if err := json.NewDecoder(r.Body).Decode(a); err != nil {
+		return err
+	}
+
+	user, err := u.profileService.Update(userId, a)
+	if err != nil {
+		return err
+	}
+
+	return writeJson(w, http.StatusOK, user)
 }
 
 func (u *UserApi) GetAll(w http.ResponseWriter, r *http.Request) error {

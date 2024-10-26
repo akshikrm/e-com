@@ -71,6 +71,30 @@ func (p *ProfileModel) Create(profile *types.NewProfileRequest) (int, error) {
 	return savedProfile.ID, nil
 }
 
+func (p *ProfileModel) UpdateProfileByUserID(userId int, profile *types.UpdateProfileRequest) error {
+	query := `update profiles set pincode=$1, address_one=$2, address_two=$3, phone_number=$4 where user_id=$5`
+
+	result, err := p.DB.Exec(query,
+		profile.Pincode,
+		profile.AddressOne,
+		profile.AddressTwo,
+		profile.PhoneNumber,
+		userId,
+	)
+
+	if err != nil {
+		log.Printf("failed to update profile %v due to %s", profile, err)
+		return utils.ServerError
+	}
+
+	if count, _ := result.RowsAffected(); count == 0 {
+		log.Printf("updated %d rows", count)
+		return utils.NotFound
+	}
+
+	return nil
+}
+
 func NewProfileModel(DB *sql.DB) *ProfileModel {
 	return &ProfileModel{DB: DB}
 }
