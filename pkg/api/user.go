@@ -14,11 +14,11 @@ import (
 
 type UserServicer interface {
 	Get() ([]*model.User, error)
-	GetOne(id int) (*model.User, error)
+	GetOne(int) (*model.User, error)
 	Login(types.LoginUserRequest) (string, error)
-	Create(user types.CreateUserRequest) (string, error)
-	Update(id int, user types.UpdateUserRequest) (*model.User, error)
-	Delete(id int) error
+	Create(types.CreateUserRequest) (string, error)
+	Update(int, types.UpdateUserRequest) (*model.User, error)
+	Delete(int) error
 }
 
 type ProfileServicer interface {
@@ -39,12 +39,7 @@ type UserProfile struct {
 	Profile   *model.Profile `json:"profile"`
 }
 
-func (u *UserApi) Profile(w http.ResponseWriter, r *http.Request) error {
-	id, err := parseId(r.PathValue("id"))
-	if err != nil {
-		return fmt.Errorf("invalid id")
-	}
-
+func (u *UserApi) Profile(id int, w http.ResponseWriter, r *http.Request) error {
 	user, err := u.UserService.GetOne(id)
 	if err != nil {
 		return err

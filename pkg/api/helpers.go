@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/golang-jwt/jwt/v5"
 	"net/http"
 	"strconv"
 )
 
 type apiFunc func(http.ResponseWriter, *http.Request) error
+type apiFuncWithContext func(int, http.ResponseWriter, *http.Request) error
 
 type ApiError struct {
 	Error string `json:"error"`
@@ -19,18 +21,24 @@ type ApiResponse struct {
 	Data any `json:"data"`
 }
 
-func IsAuthenticated(f apiFunc) apiFunc {
+func IsAuthenticated(f apiFuncWithContext) apiFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		authtoken := r.Header.Get("Authorization")
 		token, err := utils.ValidateJWT(authtoken)
 		if err != nil {
-			accessDenied(w)
+			return accessDenied(w)
 		}
 
 		if !token.Valid {
-			accessDenied(w)
+			return accessDenied(w)
 		}
-		return f(w, r)
+		if claims, ok := token.Claims.(jwt.MapClaims); ok {
+			id := int(claims["sub"].(float64))
+			return f(id, w, r)
+		}
+
+		return accessDenied(w)
+
 	}
 
 }
