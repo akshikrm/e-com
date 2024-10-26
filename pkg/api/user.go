@@ -9,19 +9,71 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 )
 
 type UserServicer interface {
 	Get() ([]*model.User, error)
-	GetOne(id int) (*model.User, error)
+	GetOne(int) (*model.User, error)
 	Login(types.LoginUserRequest) (string, error)
-	Create(user types.CreateUserRequest) (string, error)
-	Update(id int, user types.UpdateUserRequest) (*model.User, error)
-	Delete(id int) error
+	Create(types.CreateUserRequest) (string, error)
+	Update(int, types.UpdateUserRequest) (*model.User, error)
+	Delete(int) error
+}
+
+type ProfileServicer interface {
+	GetByUserId(int) (*model.Profile, error)
+	Create(*types.NewProfileRequest) error
+	Update(int, *types.UpdateProfileRequest) (*model.Profile, error)
 }
 
 type UserApi struct {
-	UserService UserServicer
+	UserService    UserServicer
+	profileService ProfileServicer
+}
+
+type UserProfile struct {
+	FirstName string         `json:"first_name"`
+	LastName  string         `json:"last_name"`
+	Email     string         `json:"email"`
+	CreatedAt time.Time      `json:"created_at"`
+	Profile   *model.Profile `json:"profile"`
+}
+
+func (u *UserApi) GetProfile(id int, w http.ResponseWriter, r *http.Request) error {
+	user, err := u.UserService.GetOne(id)
+	if err != nil {
+		return err
+	}
+
+	profile, err := u.profileService.GetByUserId(id)
+	if err != nil {
+		return err
+	}
+
+	userProfile := &UserProfile{
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Email:     user.Email,
+		CreatedAt: user.CreatedAt,
+		Profile:   profile,
+	}
+	return writeJson(w, http.StatusOK, userProfile)
+
+}
+
+func (u *UserApi) UpdateProfile(userId int, w http.ResponseWriter, r *http.Request) error {
+	a := &types.UpdateProfileRequest{}
+	if err := json.NewDecoder(r.Body).Decode(a); err != nil {
+		return err
+	}
+
+	user, err := u.profileService.Update(userId, a)
+	if err != nil {
+		return err
+	}
+
+	return writeJson(w, http.StatusOK, user)
 }
 
 func (u *UserApi) GetAll(w http.ResponseWriter, r *http.Request) error {
@@ -117,6 +169,6 @@ func (u *UserApi) Delete(w http.ResponseWriter, r *http.Request) error {
 	return writeJson(w, http.StatusOK, "deleted successfully")
 }
 
-func NewUserApi(userService UserServicer) *UserApi {
-	return &UserApi{UserService: userService}
+func NewUserApi(userService UserServicer, profileService ProfileServicer) *UserApi {
+	return &UserApi{UserService: userService, profileService: profileService}
 }

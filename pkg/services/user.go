@@ -44,7 +44,12 @@ func (u *UserService) Get() ([]*model.User, error) {
 }
 
 func (u *UserService) GetOne(id int) (*model.User, error) {
-	return u.db.GetOne(id)
+	user, err := u.db.GetOne(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func (u *UserService) Create(user types.CreateUserRequest) (string, error) {
@@ -55,6 +60,10 @@ func (u *UserService) Create(user types.CreateUserRequest) (string, error) {
 
 	user.Password = hashedPassword
 	userId, err := u.db.Create(user)
+	if err != nil {
+		return "", err
+	}
+
 	token, err := utils.CreateJwt(userId)
 	if err != nil {
 		return "", err
