@@ -22,10 +22,10 @@ type UserProfile struct {
 
 type UserServicer interface {
 	Get() ([]*model.User, error)
-	GetOne(id int) (*UserProfile, error)
+	GetOne(id int) (*model.User, error)
 	Login(types.LoginUserRequest) (string, error)
 	Create(user types.CreateUserRequest) (string, error)
-	Update(id int, user types.UpdateUserRequest) (*UserProfile, error)
+	Update(id int, user types.UpdateUserRequest) (*model.User, error)
 	Delete(id int) error
 }
 

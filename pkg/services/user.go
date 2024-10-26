@@ -1,7 +1,6 @@
 package services
 
 import (
-	"akshidas/e-com/pkg/api"
 	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
@@ -50,26 +49,26 @@ func (u *UserService) Get() ([]*model.User, error) {
 	return u.db.Get()
 }
 
-func (u *UserService) GetOne(id int) (*api.UserProfile, error) {
-	// GetByUserId
+func (u *UserService) GetOne(id int) (*model.User, error) {
 	user, err := u.db.GetOne(id)
 	if err != nil {
 		return nil, err
 	}
 
-	profile, err := u.profileService.GetByUserId(user.ID)
-	if err != nil {
-		return nil, err
-	}
+	// profile, err := u.profileService.GetByUserId(user.ID)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	//
+	// userProfile := &api.UserProfile{
+	// 	FirstName: user.FirstName,
+	// 	LastName:  user.LastName,
+	// 	Email:     user.Email,
+	// 	CreatedAt: user.CreatedAt,
+	// 	Profile:   profile,
+	// }
 
-	userProfile := &api.UserProfile{
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
-		Profile:   profile,
-	}
-	return userProfile, nil
+	return user, nil
 }
 
 func (u *UserService) Create(user types.CreateUserRequest) (string, error) {
@@ -98,7 +97,7 @@ func (u *UserService) Create(user types.CreateUserRequest) (string, error) {
 
 }
 
-func (u *UserService) Update(id int, user types.UpdateUserRequest) (*api.UserProfile, error) {
+func (u *UserService) Update(id int, user types.UpdateUserRequest) (*model.User, error) {
 	err := u.db.Update(id, user)
 	if err != nil {
 		return nil, err
