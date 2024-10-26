@@ -39,7 +39,7 @@ type UserProfile struct {
 	Profile   *model.Profile `json:"profile"`
 }
 
-func (u *UserApi) Profile(id int, w http.ResponseWriter, r *http.Request) error {
+func (u *UserApi) GetProfile(id int, w http.ResponseWriter, r *http.Request) error {
 	user, err := u.UserService.GetOne(id)
 	if err != nil {
 		return err
