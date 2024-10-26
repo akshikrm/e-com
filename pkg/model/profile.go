@@ -14,7 +14,7 @@ type Profile struct {
 	AddressOne  string    `json:"address_one"`
 	AddressTwo  string    `json:"address_two"`
 	PhoneNumber string    `json:"phone_number"`
-	UserID      int       `json:"user_id"`
+	UserID      int       `json:"-"`
 	CreatedAt   time.Time `json:"created_at"`
 }
 
@@ -22,7 +22,28 @@ type ProfileModel struct {
 	DB *sql.DB
 }
 
-func (p *ProfileModel) Get() {}
+func (p *ProfileModel) GetByUserId(userId int) (*Profile, error) {
+	query := `select * from profiles where user_id=$1`
+	row := p.DB.QueryRow(query, userId)
+
+	savedProfile := &Profile{}
+	if err := row.Scan(
+		&savedProfile.ID,
+		&savedProfile.UserID,
+		&savedProfile.PhoneNumber,
+		&savedProfile.Pincode,
+		&savedProfile.AddressOne,
+		&savedProfile.AddressTwo,
+		&savedProfile.CreatedAt,
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, utils.NotFound
+		}
+		log.Printf("failed to get profile of user with id: %d due to: %s", userId, err)
+		return nil, utils.ServerError
+	}
+	return savedProfile, nil
+}
 
 func (p *ProfileModel) Create(profile types.NewProfileRequest) (int, error) {
 	query := `insert into

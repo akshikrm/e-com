@@ -9,14 +9,23 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 )
+
+type UserProfile struct {
+	FirstName string         `json:"first_name"`
+	LastName  string         `json:"last_name"`
+	Email     string         `json:"email"`
+	CreatedAt time.Time      `json:"created_at"`
+	Profile   *model.Profile `json:"profile"`
+}
 
 type UserServicer interface {
 	Get() ([]*model.User, error)
-	GetOne(id int) (*model.User, error)
+	GetOne(id int) (*UserProfile, error)
 	Login(types.LoginUserRequest) (string, error)
 	Create(user types.CreateUserRequest) (string, error)
-	Update(id int, user types.UpdateUserRequest) (*model.User, error)
+	Update(id int, user types.UpdateUserRequest) (*UserProfile, error)
 	Delete(id int) error
 }
 
