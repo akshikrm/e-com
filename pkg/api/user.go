@@ -12,14 +12,6 @@ import (
 	"time"
 )
 
-type UserProfile struct {
-	FirstName string         `json:"first_name"`
-	LastName  string         `json:"last_name"`
-	Email     string         `json:"email"`
-	CreatedAt time.Time      `json:"created_at"`
-	Profile   *model.Profile `json:"profile"`
-}
-
 type UserServicer interface {
 	Get() ([]*model.User, error)
 	GetOne(id int) (*model.User, error)
@@ -29,8 +21,50 @@ type UserServicer interface {
 	Delete(id int) error
 }
 
+type ProfileServicer interface {
+	GetByUserId(int) (*model.Profile, error)
+	Create(types.NewProfileRequest) error
+}
+
 type UserApi struct {
-	UserService UserServicer
+	UserService    UserServicer
+	profileService ProfileServicer
+}
+
+type UserProfile struct {
+	FirstName string         `json:"first_name"`
+	LastName  string         `json:"last_name"`
+	Email     string         `json:"email"`
+	CreatedAt time.Time      `json:"created_at"`
+	Profile   *model.Profile `json:"profile"`
+}
+
+func (u *UserApi) Profile(w http.ResponseWriter, r *http.Request) error {
+
+	id, err := parseId(r.PathValue("id"))
+	if err != nil {
+		return fmt.Errorf("invalid id")
+	}
+
+	user, err := u.UserService.GetOne(id)
+	if err != nil {
+		return err
+	}
+
+	profile, err := u.profileService.GetByUserId(id)
+	if err != nil {
+		return err
+	}
+
+	userProfile := &UserProfile{
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Email:     user.Email,
+		CreatedAt: user.CreatedAt,
+		Profile:   profile,
+	}
+	return writeJson(w, http.StatusOK, userProfile)
+
 }
 
 func (u *UserApi) GetAll(w http.ResponseWriter, r *http.Request) error {
@@ -126,6 +160,6 @@ func (u *UserApi) Delete(w http.ResponseWriter, r *http.Request) error {
 	return writeJson(w, http.StatusOK, "deleted successfully")
 }
 
-func NewUserApi(userService UserServicer) *UserApi {
-	return &UserApi{UserService: userService}
+func NewUserApi(userService UserServicer, profileService ProfileServicer) *UserApi {
+	return &UserApi{UserService: userService, profileService: profileService}
 }

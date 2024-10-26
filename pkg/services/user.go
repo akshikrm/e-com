@@ -16,14 +16,8 @@ type UserModeler interface {
 	Delete(id int) error
 }
 
-type ProfileServicer interface {
-	GetByUserId(int) (*model.Profile, error)
-	Create(types.NewProfileRequest) error
-}
-
 type UserService struct {
-	db             UserModeler
-	profileService ProfileServicer
+	db UserModeler
 }
 
 func (u *UserService) Login(payload types.LoginUserRequest) (string, error) {
@@ -55,19 +49,6 @@ func (u *UserService) GetOne(id int) (*model.User, error) {
 		return nil, err
 	}
 
-	// profile, err := u.profileService.GetByUserId(user.ID)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	//
-	// userProfile := &api.UserProfile{
-	// 	FirstName: user.FirstName,
-	// 	LastName:  user.LastName,
-	// 	Email:     user.Email,
-	// 	CreatedAt: user.CreatedAt,
-	// 	Profile:   profile,
-	// }
-
 	return user, nil
 }
 
@@ -83,10 +64,10 @@ func (u *UserService) Create(user types.CreateUserRequest) (string, error) {
 		return "", err
 	}
 
-	userProfile := &types.NewProfileRequest{UserID: userId}
-	if err := u.profileService.Create(*userProfile); err != nil {
-		return "", err
-	}
+	// userProfile := &types.NewProfileRequest{UserID: userId}
+	// if err := u.profileService.Create(*userProfile); err != nil {
+	// 	return "", err
+	// }
 
 	token, err := utils.CreateJwt(userId)
 	if err != nil {
@@ -109,6 +90,6 @@ func (u *UserService) Delete(id int) error {
 	return u.db.Delete(id)
 }
 
-func NewUserService(db UserModeler, profile ProfileServicer) *UserService {
-	return &UserService{db: db, profileService: profile}
+func NewUserService(db UserModeler) *UserService {
+	return &UserService{db: db}
 }
