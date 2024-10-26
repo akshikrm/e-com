@@ -40,7 +40,6 @@ type UserProfile struct {
 }
 
 func (u *UserApi) Profile(w http.ResponseWriter, r *http.Request) error {
-
 	id, err := parseId(r.PathValue("id"))
 	if err != nil {
 		return fmt.Errorf("invalid id")

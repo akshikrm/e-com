@@ -3,6 +3,7 @@ package services
 import (
 	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/types"
+	"akshidas/e-com/pkg/utils"
 )
 
 type ProfileModeler interface {
@@ -15,7 +16,16 @@ type ProfileService struct {
 }
 
 func (p *ProfileService) GetByUserId(userID int) (*model.Profile, error) {
-	return p.model.GetByUserId(userID)
+	profile, err := p.model.GetByUserId(userID)
+
+	if err == nil {
+		return profile, nil
+	}
+
+	if err != utils.NotFound {
+		return nil, err
+	}
+	return p.createAndReturnProfileFromUserId(userID)
 }
 
 func (p *ProfileService) Create(profile types.NewProfileRequest) error {
@@ -24,6 +34,15 @@ func (p *ProfileService) Create(profile types.NewProfileRequest) error {
 		return err
 	}
 	return nil
+}
+
+func (p *ProfileService) createAndReturnProfileFromUserId(userID int) (*model.Profile, error) {
+	err := p.Create(types.NewProfileRequest{UserID: userID})
+	if err != nil {
+		return nil, err
+	}
+
+	return p.GetByUserId(userID)
 }
 
 func NewProfileService(model ProfileModeler) *ProfileService {
