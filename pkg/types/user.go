@@ -19,3 +19,10 @@ type LoginUserRequest struct {
 	Password string `json:"password"`
 }
 
+type NewProfileRequest struct {
+	Pincode     string `json:"pincode"`
+	AddressOne  string `json:"address_one"`
+	AddressTwo  string `json:"address_two"`
+	PhoneNumber string `json:"phone_number"`
+	UserID      int    `json:"user_id"`
+}

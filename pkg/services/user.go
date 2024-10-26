@@ -16,13 +16,13 @@ type UserModeler interface {
 	Delete(id int) error
 }
 
-type ProfileModeler interface {
-	Create(model.NewProfileRequest) (int, error)
+type ProfileServicer interface {
+	Create(types.NewProfileRequest) error
 }
 
 type UserService struct {
-	db      UserModeler
-	profile ProfileModeler
+	db             UserModeler
+	profileService ProfileServicer
 }
 
 func (u *UserService) Login(payload types.LoginUserRequest) (string, error) {
@@ -64,7 +64,10 @@ func (u *UserService) Create(user types.CreateUserRequest) (string, error) {
 		return "", err
 	}
 
-	// _, err :=
+	userProfile := &types.NewProfileRequest{UserID: userId}
+	if err := u.profileService.Create(*userProfile); err != nil {
+		return "", err
+	}
 
 	token, err := utils.CreateJwt(userId)
 	if err != nil {
@@ -87,6 +90,6 @@ func (u *UserService) Delete(id int) error {
 	return u.db.Delete(id)
 }
 
-func NewUserService(db UserModeler) *UserService {
-	return &UserService{db: db}
+func NewUserService(db UserModeler, profile ProfileServicer) *UserService {
+	return &UserService{db: db, profileService: profile}
 }

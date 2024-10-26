@@ -36,7 +36,9 @@ func (s *APIServer) Run() {
 
 func RegisterUserApi(r *http.ServeMux, store Database) {
 	userModel := model.NewUserModel(store.(*db.PostgresStore).DB)
-	userService := services.NewUserService(userModel)
+	profileModel := model.NewProfileModel(store.(*db.PostgresStore).DB)
+	profileService := services.NewProfileService(profileModel)
+	userService := services.NewUserService(userModel, profileService)
 	userApi := api.NewUserApi(userService)
 
 	r.HandleFunc("GET /users", api.RouteHandler(api.IsAuthenticated(userApi.GetAll)))
