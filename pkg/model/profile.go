@@ -45,7 +45,7 @@ func (p *ProfileModel) GetByUserId(userId int) (*Profile, error) {
 	return savedProfile, nil
 }
 
-func (p *ProfileModel) Create(profile types.NewProfileRequest) (int, error) {
+func (p *ProfileModel) Create(profile *types.NewProfileRequest) (int, error) {
 	query := `insert into
 	profiles (pincode, address_one, address_two, phone_number, user_id, created_at)
 	values ($1, $2, $3, $4, $5, $6)

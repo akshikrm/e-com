@@ -8,7 +8,7 @@ import (
 
 type ProfileModeler interface {
 	GetByUserId(int) (*model.Profile, error)
-	Create(types.NewProfileRequest) (int, error)
+	Create(*types.NewProfileRequest) (int, error)
 }
 
 type ProfileService struct {
@@ -28,7 +28,7 @@ func (p *ProfileService) GetByUserId(userID int) (*model.Profile, error) {
 	return p.createAndReturnProfileFromUserId(userID)
 }
 
-func (p *ProfileService) Create(profile types.NewProfileRequest) error {
+func (p *ProfileService) Create(profile *types.NewProfileRequest) error {
 	_, err := p.model.Create(profile)
 	if err != nil {
 		return err
@@ -37,7 +37,7 @@ func (p *ProfileService) Create(profile types.NewProfileRequest) error {
 }
 
 func (p *ProfileService) createAndReturnProfileFromUserId(userID int) (*model.Profile, error) {
-	err := p.Create(types.NewProfileRequest{UserID: userID})
+	err := p.Create(&types.NewProfileRequest{UserID: userID})
 	if err != nil {
 		return nil, err
 	}

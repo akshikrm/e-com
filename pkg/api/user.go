@@ -23,7 +23,7 @@ type UserServicer interface {
 
 type ProfileServicer interface {
 	GetByUserId(int) (*model.Profile, error)
-	Create(types.NewProfileRequest) error
+	Create(*types.NewProfileRequest) error
 }
 
 type UserApi struct {
