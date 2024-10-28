@@ -4,6 +4,7 @@ import (
 	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
+	"database/sql"
 	"log"
 )
 
@@ -17,11 +18,12 @@ type UserModeler interface {
 }
 
 type UserService struct {
-	db UserModeler
+	db    *sql.DB
+	model UserModeler
 }
 
 func (u *UserService) Login(payload types.LoginUserRequest) (string, error) {
-	user, err := u.db.GetUserByEmail(payload.Email)
+	user, err := u.model.GetUserByEmail(payload.Email)
 	if err != nil {
 		return "", err
 	}
@@ -40,11 +42,11 @@ func (u *UserService) Login(payload types.LoginUserRequest) (string, error) {
 }
 
 func (u *UserService) Get() ([]*model.User, error) {
-	return u.db.Get()
+	return u.model.Get()
 }
 
 func (u *UserService) GetOne(id int) (*model.User, error) {
-	user, err := u.db.GetOne(id)
+	user, err := u.model.GetOne(id)
 	if err != nil {
 		return nil, err
 	}
@@ -59,8 +61,20 @@ func (u *UserService) Create(user types.CreateUserRequest) (string, error) {
 	}
 
 	user.Password = hashedPassword
-	userId, err := u.db.Create(user)
+	userId, err := u.model.Create(user)
 	if err != nil {
+		return "", err
+	}
+
+	userProfileService := NewProfileService(u.db)
+	newUserProfile := &types.NewProfileRequest{
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Email:     user.Email,
+		UserID:    userId,
+	}
+
+	if err := userProfileService.Create(newUserProfile); err != nil {
 		return "", err
 	}
 
@@ -74,7 +88,7 @@ func (u *UserService) Create(user types.CreateUserRequest) (string, error) {
 }
 
 func (u *UserService) Update(id int, user types.UpdateUserRequest) (*model.User, error) {
-	err := u.db.Update(id, user)
+	err := u.model.Update(id, user)
 	if err != nil {
 		return nil, err
 	}
@@ -82,9 +96,10 @@ func (u *UserService) Update(id int, user types.UpdateUserRequest) (*model.User,
 }
 
 func (u *UserService) Delete(id int) error {
-	return u.db.Delete(id)
+	return u.model.Delete(id)
 }
 
-func NewUserService(db UserModeler) *UserService {
-	return &UserService{db: db}
+func NewUserService(database *sql.DB) *UserService {
+	userModel := model.NewUserModel(database)
+	return &UserService{model: userModel, db: database}
 }

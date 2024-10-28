@@ -20,6 +20,9 @@ type LoginUserRequest struct {
 }
 
 type NewProfileRequest struct {
+	FirstName   string `json:"first_name"`
+	LastName    string `json:"last_name"`
+	Email       string `json:"email"`
 	Pincode     string `json:"pincode"`
 	AddressOne  string `json:"address_one"`
 	AddressTwo  string `json:"address_two"`

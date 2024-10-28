@@ -10,9 +10,6 @@ import (
 
 type User struct {
 	ID        int       `json:"id"`
-	FirstName string    `json:"first_name"`
-	LastName  string    `json:"last_name"`
-	Email     string    `json:"email"`
 	Password  string    `json:"-"`
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -71,16 +68,13 @@ func (m *UserModel) GetUserByEmail(email string) (*User, error) {
 
 func (m *UserModel) Create(user types.CreateUserRequest) (int, error) {
 	query := `insert into 
-	users (first_name, last_name, password, email, created_at)
-	values($1, $2, $3, $4, $5)
+	users (password, created_at)
+	values($1, $2)
 	returning id
 	`
 
 	row := m.DB.QueryRow(query,
-		user.FirstName,
-		user.LastName,
 		user.Password,
-		user.Email,
 		time.Now().UTC(),
 	)
 	log.Printf("Created user %v", user)
@@ -131,9 +125,6 @@ func ScanRows(rows *sql.Rows) (*User, error) {
 	user := &User{}
 	err := rows.Scan(
 		&user.ID,
-		&user.FirstName,
-		&user.LastName,
-		&user.Email,
 		&user.Password,
 		&user.CreatedAt,
 	)
@@ -149,9 +140,6 @@ func ScanRow(row *sql.Row) (*User, error) {
 	user := &User{}
 	err := row.Scan(
 		&user.ID,
-		&user.FirstName,
-		&user.LastName,
-		&user.Email,
 		&user.Password,
 		&user.CreatedAt,
 	)

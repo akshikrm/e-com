@@ -3,7 +3,6 @@ package server
 import (
 	"akshidas/e-com/pkg/api"
 	"akshidas/e-com/pkg/db"
-	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/services"
 	"log"
 	"net/http"
@@ -35,10 +34,8 @@ func (s *APIServer) Run() {
 }
 
 func RegisterUserApi(r *http.ServeMux, store Database) {
-	userModel := model.NewUserModel(store.(*db.PostgresStore).DB)
-	profileModel := model.NewProfileModel(store.(*db.PostgresStore).DB)
-	profileService := services.NewProfileService(profileModel)
-	userService := services.NewUserService(userModel)
+	profileService := services.NewProfileService(store.(*db.PostgresStore).DB)
+	userService := services.NewUserService(store.(*db.PostgresStore).DB)
 	userApi := api.NewUserApi(userService, profileService)
 
 	r.HandleFunc("GET /users", api.RouteHandler(userApi.GetAll))

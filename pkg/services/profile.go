@@ -4,6 +4,7 @@ import (
 	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
+	"database/sql"
 )
 
 type ProfileModeler interface {
@@ -13,6 +14,7 @@ type ProfileModeler interface {
 }
 
 type ProfileService struct {
+	db    *sql.DB
 	model ProfileModeler
 }
 
@@ -54,6 +56,7 @@ func (p *ProfileService) createAndReturnProfileFromUserId(userID int) (*model.Pr
 	return p.GetByUserId(userID)
 }
 
-func NewProfileService(model ProfileModeler) *ProfileService {
-	return &ProfileService{model}
+func NewProfileService(database *sql.DB) *ProfileService {
+	profileModel := model.NewProfileModel(database)
+	return &ProfileService{model: profileModel, db: database}
 }

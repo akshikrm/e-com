@@ -52,9 +52,6 @@ func (u *UserApi) GetProfile(id int, w http.ResponseWriter, r *http.Request) err
 	}
 
 	userProfile := &UserProfile{
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		Email:     user.Email,
 		CreatedAt: user.CreatedAt,
 		Profile:   profile,
 	}
