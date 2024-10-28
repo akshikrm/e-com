@@ -65,13 +65,13 @@ func CreateProfileTable(db *sql.DB) {
 	query := `CREATE TABLE IF NOT EXISTS profiles (
 	id serial primary key,
 	user_id int,
-	first_name varchar(50),
-	last_name varchar(50),
-	email varchar(50),
-	pincode varchar(10),
-	address_one varchar(100),
-	address_two varchar(100),
-	phone_number varchar(15),
+	first_name varchar(50) DEFAULT '' NOT NULL,
+	last_name varchar(50) DEFAULT '' NOT NULL,
+	email varchar(50) DEFAULT '' NOT NULL,
+	pincode varchar(10) DEFAULT '' NOT NULL,
+	address_one varchar(100) DEFAULT '' NOT NULL,
+	address_two varchar(100) DEFAULT '' NOT NULL,
+	phone_number varchar(15) DEFAULT '' NOT NULL,
 	created_at timestamp,
 	CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id)
 	)`

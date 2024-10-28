@@ -17,13 +17,19 @@ type UserModeler interface {
 	Delete(id int) error
 }
 
+type ProfileModeler interface {
+	GetByUserId(int) (*model.Profile, error)
+	Create(*types.NewProfileRequest) (int, error)
+	UpdateProfileByUserID(int, *types.UpdateProfileRequest) error
+}
+
 type UserService struct {
-	db    *sql.DB
-	model UserModeler
+	userModel    UserModeler
+	profileModel ProfileModeler
 }
 
 func (u *UserService) Login(payload types.LoginUserRequest) (string, error) {
-	user, err := u.model.GetUserByEmail(payload.Email)
+	user, err := u.userModel.GetUserByEmail(payload.Email)
 	if err != nil {
 		return "", err
 	}
@@ -42,11 +48,15 @@ func (u *UserService) Login(payload types.LoginUserRequest) (string, error) {
 }
 
 func (u *UserService) Get() ([]*model.User, error) {
-	return u.model.Get()
+	return u.userModel.Get()
+}
+
+func (u *UserService) GetProfile(userId int) (*model.Profile, error) {
+	return u.profileModel.GetByUserId(userId)
 }
 
 func (u *UserService) GetOne(id int) (*model.User, error) {
-	user, err := u.model.GetOne(id)
+	user, err := u.userModel.GetOne(id)
 	if err != nil {
 		return nil, err
 	}
@@ -61,20 +71,19 @@ func (u *UserService) Create(user types.CreateUserRequest) (string, error) {
 	}
 
 	user.Password = hashedPassword
-	userId, err := u.model.Create(user)
+	userId, err := u.userModel.Create(user)
 	if err != nil {
 		return "", err
 	}
 
-	userProfileService := NewProfileService(u.db)
-	newUserProfile := &types.NewProfileRequest{
+	newUserProfile := types.NewProfileRequest{
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		Email:     user.Email,
 		UserID:    userId,
 	}
 
-	if err := userProfileService.Create(newUserProfile); err != nil {
+	if _, err := u.profileModel.Create(&newUserProfile); err != nil {
 		return "", err
 	}
 
@@ -88,7 +97,7 @@ func (u *UserService) Create(user types.CreateUserRequest) (string, error) {
 }
 
 func (u *UserService) Update(id int, user types.UpdateUserRequest) (*model.User, error) {
-	err := u.model.Update(id, user)
+	err := u.userModel.Update(id, user)
 	if err != nil {
 		return nil, err
 	}
@@ -96,10 +105,11 @@ func (u *UserService) Update(id int, user types.UpdateUserRequest) (*model.User,
 }
 
 func (u *UserService) Delete(id int) error {
-	return u.model.Delete(id)
+	return u.userModel.Delete(id)
 }
 
 func NewUserService(database *sql.DB) *UserService {
 	userModel := model.NewUserModel(database)
-	return &UserService{model: userModel, db: database}
+	profileModel := model.NewProfileModel(database)
+	return &UserService{userModel: userModel, profileModel: profileModel}
 }

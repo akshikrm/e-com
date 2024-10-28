@@ -34,6 +34,9 @@ func (p *ProfileModel) GetByUserId(userId int) (*Profile, error) {
 	if err := row.Scan(
 		&savedProfile.ID,
 		&savedProfile.UserID,
+		&savedProfile.FirstName,
+		&savedProfile.LastName,
+		&savedProfile.Email,
 		&savedProfile.Pincode,
 		&savedProfile.AddressOne,
 		&savedProfile.AddressTwo,

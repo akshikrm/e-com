@@ -14,6 +14,7 @@ import (
 
 type UserServicer interface {
 	Get() ([]*model.User, error)
+	GetProfile(int) (*model.Profile, error)
 	GetOne(int) (*model.User, error)
 	Login(types.LoginUserRequest) (string, error)
 	Create(types.CreateUserRequest) (string, error)
@@ -41,19 +42,27 @@ type UserProfile struct {
 }
 
 func (u *UserApi) GetProfile(id int, w http.ResponseWriter, r *http.Request) error {
-	user, err := u.UserService.GetOne(id)
-	if err != nil {
-		return err
-	}
+	// user, err := u.UserService.GetOne(id)
+	// if err != nil {
+	// 	return err
+	// }
+	//
+	// profile, err := u.profileService.GetByUserId(id)
+	// if err != nil {
+	// 	return err
+	// }
+	//
+	// userProfile := &UserProfile{
+	// 	CreatedAt: user.CreatedAt,
+	// 	Profile:   profile,
+	// }
 
-	profile, err := u.profileService.GetByUserId(id)
+	userProfile, err := u.UserService.GetProfile(id)
 	if err != nil {
+		if err == utils.NotFound {
+			return writeJson(w, http.StatusNotFound, "not found")
+		}
 		return err
-	}
-
-	userProfile := &UserProfile{
-		CreatedAt: user.CreatedAt,
-		Profile:   profile,
 	}
 	return writeJson(w, http.StatusOK, userProfile)
 
@@ -166,6 +175,6 @@ func (u *UserApi) Delete(w http.ResponseWriter, r *http.Request) error {
 	return writeJson(w, http.StatusOK, "deleted successfully")
 }
 
-func NewUserApi(userService UserServicer, profileService ProfileServicer) *UserApi {
-	return &UserApi{UserService: userService, profileService: profileService}
+func NewUserApi(userService UserServicer) *UserApi {
+	return &UserApi{UserService: userService}
 }
