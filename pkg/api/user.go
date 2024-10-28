@@ -18,19 +18,12 @@ type UserServicer interface {
 	GetOne(int) (*model.User, error)
 	Login(types.LoginUserRequest) (string, error)
 	Create(types.CreateUserRequest) (string, error)
-	Update(int, types.UpdateUserRequest) (*model.User, error)
+	Update(int, *types.UpdateProfileRequest) (*model.Profile, error)
 	Delete(int) error
 }
 
-type ProfileServicer interface {
-	GetByUserId(int) (*model.Profile, error)
-	Create(*types.NewProfileRequest) error
-	Update(int, *types.UpdateProfileRequest) (*model.Profile, error)
-}
-
 type UserApi struct {
-	UserService    UserServicer
-	profileService ProfileServicer
+	UserService UserServicer
 }
 
 type UserProfile struct {
@@ -42,21 +35,6 @@ type UserProfile struct {
 }
 
 func (u *UserApi) GetProfile(id int, w http.ResponseWriter, r *http.Request) error {
-	// user, err := u.UserService.GetOne(id)
-	// if err != nil {
-	// 	return err
-	// }
-	//
-	// profile, err := u.profileService.GetByUserId(id)
-	// if err != nil {
-	// 	return err
-	// }
-	//
-	// userProfile := &UserProfile{
-	// 	CreatedAt: user.CreatedAt,
-	// 	Profile:   profile,
-	// }
-
 	userProfile, err := u.UserService.GetProfile(id)
 	if err != nil {
 		if err == utils.NotFound {
@@ -74,7 +52,7 @@ func (u *UserApi) UpdateProfile(userId int, w http.ResponseWriter, r *http.Reque
 		return err
 	}
 
-	user, err := u.profileService.Update(userId, a)
+	user, err := u.UserService.Update(userId, a)
 	if err != nil {
 		return err
 	}
@@ -144,14 +122,14 @@ func (u *UserApi) Create(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (u *UserApi) Update(w http.ResponseWriter, r *http.Request) error {
-	a := &types.UpdateUserRequest{}
-	if err := json.NewDecoder(r.Body).Decode(a); err != nil {
+	a := types.UpdateProfileRequest{}
+	if err := json.NewDecoder(r.Body).Decode(&a); err != nil {
 		return err
 	}
 
 	id, err := parseId(r.PathValue("id"))
 
-	user, err := u.UserService.Update(id, *a)
+	user, err := u.UserService.Update(id, &a)
 	if err != nil {
 		return err
 	}

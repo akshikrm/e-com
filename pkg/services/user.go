@@ -96,12 +96,12 @@ func (u *UserService) Create(user types.CreateUserRequest) (string, error) {
 
 }
 
-func (u *UserService) Update(id int, user types.UpdateUserRequest) (*model.User, error) {
-	err := u.userModel.Update(id, user)
+func (u *UserService) Update(id int, user *types.UpdateProfileRequest) (*model.Profile, error) {
+	err := u.profileModel.UpdateProfileByUserID(id, user)
 	if err != nil {
 		return nil, err
 	}
-	return u.GetOne(id)
+	return u.GetProfile(id)
 }
 
 func (u *UserService) Delete(id int) error {

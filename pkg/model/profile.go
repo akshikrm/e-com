@@ -20,6 +20,7 @@ type Profile struct {
 	PhoneNumber string    `json:"phone_number"`
 	UserID      int       `json:"-"`
 	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type ProfileModel struct {
@@ -42,6 +43,7 @@ func (p *ProfileModel) GetByUserId(userId int) (*Profile, error) {
 		&savedProfile.AddressTwo,
 		&savedProfile.PhoneNumber,
 		&savedProfile.CreatedAt,
+		&savedProfile.UpdatedAt,
 	); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, utils.NotFound
@@ -55,8 +57,8 @@ func (p *ProfileModel) GetByUserId(userId int) (*Profile, error) {
 
 func (p *ProfileModel) Create(profile *types.NewProfileRequest) (int, error) {
 	query := `insert into
-	profiles (first_name,last_name, email, user_id, created_at)
-	values ($1, $2, $3, $4, $5)
+	profiles (first_name,last_name, email, user_id)
+	values ($1, $2, $3, $4)
 	returning id
 	`
 
@@ -66,7 +68,6 @@ func (p *ProfileModel) Create(profile *types.NewProfileRequest) (int, error) {
 		profile.LastName,
 		profile.Email,
 		profile.UserID,
-		time.Now().UTC(),
 	)
 
 	savedProfile := Profile{}
@@ -79,13 +80,16 @@ func (p *ProfileModel) Create(profile *types.NewProfileRequest) (int, error) {
 }
 
 func (p *ProfileModel) UpdateProfileByUserID(userId int, profile *types.UpdateProfileRequest) error {
-	query := `update profiles set pincode=$1, address_one=$2, address_two=$3, phone_number=$4 where user_id=$5`
+	query := `update profiles set pincode=$1, address_one=$2, address_two=$3, phone_number=$4, first_name=$5, last_name=$6, email=$7 where user_id=$8`
 
 	result, err := p.DB.Exec(query,
 		profile.Pincode,
 		profile.AddressOne,
 		profile.AddressTwo,
 		profile.PhoneNumber,
+		profile.FirstName,
+		profile.LastName,
+		profile.Email,
 		userId,
 	)
 
