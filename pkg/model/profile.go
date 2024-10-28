@@ -52,20 +52,16 @@ func (p *ProfileModel) GetByUserId(userId int) (*Profile, error) {
 
 func (p *ProfileModel) Create(profile *types.NewProfileRequest) (int, error) {
 	query := `insert into
-	profiles (first_name,last_name, email, pincode, address_one, address_two, phone_number, user_id, created_at)
-	values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+	profiles (first_name,last_name, email, user_id, created_at)
+	values ($1, $2, $3, $4, $5)
 	returning id
 	`
 
-	log.Println("Create profile")
+	log.Println("Creating profile")
 	row := p.DB.QueryRow(query,
 		profile.FirstName,
 		profile.LastName,
 		profile.Email,
-		profile.AddressOne,
-		profile.AddressTwo,
-		profile.Pincode,
-		profile.PhoneNumber,
 		profile.UserID,
 		time.Now().UTC(),
 	)
