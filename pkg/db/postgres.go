@@ -4,10 +4,9 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
+	_ "github.com/lib/pq"
 	"log"
 	"os"
-
-	_ "github.com/lib/pq"
 )
 
 type PostgresStore struct {
@@ -41,7 +40,6 @@ func (s *PostgresStore) Connect() error {
 func (s *PostgresStore) Init() {
 	CreateUserTable(s.DB)
 	CreateProfileTable(s.DB)
-
 	log.Println("successfully created all tables")
 	os.Exit(0)
 }

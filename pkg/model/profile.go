@@ -4,6 +4,7 @@ import (
 	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
 	"database/sql"
+	"fmt"
 	"log"
 	"time"
 )
@@ -30,10 +31,10 @@ func (p *ProfileModel) GetByUserId(userId int) (*Profile, error) {
 	if err := row.Scan(
 		&savedProfile.ID,
 		&savedProfile.UserID,
-		&savedProfile.PhoneNumber,
 		&savedProfile.Pincode,
 		&savedProfile.AddressOne,
 		&savedProfile.AddressTwo,
+		&savedProfile.PhoneNumber,
 		&savedProfile.CreatedAt,
 	); err != nil {
 		if err == sql.ErrNoRows {
@@ -42,6 +43,7 @@ func (p *ProfileModel) GetByUserId(userId int) (*Profile, error) {
 		log.Printf("failed to get profile of user with id: %d due to: %s", userId, err)
 		return nil, utils.ServerError
 	}
+	fmt.Println(*savedProfile)
 	return savedProfile, nil
 }
 
@@ -54,9 +56,9 @@ func (p *ProfileModel) Create(profile *types.NewProfileRequest) (int, error) {
 
 	log.Println("Create profile")
 	row := p.DB.QueryRow(query,
-		profile.Pincode,
 		profile.AddressOne,
 		profile.AddressTwo,
+		profile.Pincode,
 		profile.PhoneNumber,
 		profile.UserID,
 		time.Now().UTC(),
