@@ -16,7 +16,7 @@ type UserServicer interface {
 	Get() ([]*model.User, error)
 	GetProfile(int) (*model.Profile, error)
 	GetOne(int) (*model.User, error)
-	Login(types.LoginUserRequest) (string, error)
+	Login(*types.LoginUserRequest) (string, error)
 	Create(types.CreateUserRequest) (string, error)
 	Update(int, *types.UpdateProfileRequest) (*model.Profile, error)
 	Delete(int) error
@@ -88,16 +88,19 @@ func (u *UserApi) GetOne(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (u *UserApi) Login(w http.ResponseWriter, r *http.Request) error {
-	a := &types.LoginUserRequest{}
-	if err := json.NewDecoder(r.Body).Decode(a); err != nil {
+	a := types.LoginUserRequest{}
+	if err := json.NewDecoder(r.Body).Decode(&a); err != nil {
 		if err == io.EOF {
 			return errors.New("invalid request")
 		}
 		return err
 	}
 
-	token, err := u.UserService.Login(*a)
+	token, err := u.UserService.Login(&a)
 	if err != nil {
+		if err == utils.NotFound {
+			return writeError(w, http.StatusNotFound, err)
+		}
 		return err
 	}
 

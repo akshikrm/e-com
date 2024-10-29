@@ -4,6 +4,7 @@ import (
 	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
 	"database/sql"
+	"fmt"
 	"log"
 	"time"
 )
@@ -37,6 +38,23 @@ func (m *UserModel) Get() ([]*User, error) {
 	}
 
 	return users, nil
+}
+
+func (m *UserModel) GetPasswordByEmail(email string) (*User, error) {
+	query := `select user_id,password from users inner join profiles on users.id = profiles.user_id where email=$1;`
+	row := m.DB.QueryRow(query, email)
+
+	user := User{}
+	if err := row.Scan(&user.ID, &user.Password); err != nil {
+		if err == sql.ErrNoRows {
+			log.Printf("profile with email:%s not found", email)
+			return nil, utils.NotFound
+		}
+		log.Printf("failed to retrieve for email: %s due to error:%s", email, err)
+		return nil, utils.ServerError
+	}
+	fmt.Println(user)
+	return &user, nil
 }
 
 func (m *UserModel) GetOne(id int) (*User, error) {

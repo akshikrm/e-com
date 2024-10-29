@@ -11,6 +11,7 @@ import (
 type UserModeler interface {
 	Get() ([]*model.User, error)
 	GetOne(id int) (*model.User, error)
+	GetPasswordByEmail(email string) (*model.User, error)
 	GetUserByEmail(email string) (*model.User, error)
 	Create(user types.CreateUserRequest) (int, error)
 	Update(id int, user types.UpdateUserRequest) error
@@ -28,8 +29,8 @@ type UserService struct {
 	profileModel ProfileModeler
 }
 
-func (u *UserService) Login(payload types.LoginUserRequest) (string, error) {
-	user, err := u.userModel.GetUserByEmail(payload.Email)
+func (u *UserService) Login(payload *types.LoginUserRequest) (string, error) {
+	user, err := u.userModel.GetPasswordByEmail(payload.Email)
 	if err != nil {
 		return "", err
 	}
