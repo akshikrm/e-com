@@ -1,10 +1,14 @@
 package db
 
 import (
+	"akshidas/e-com/pkg/services"
+	"akshidas/e-com/pkg/types"
 	"database/sql"
+	"encoding/json"
 	"flag"
 	"fmt"
 	_ "github.com/lib/pq"
+	"io"
 	"log"
 	"os"
 )
@@ -27,14 +31,48 @@ func (s *PostgresStore) Connect() error {
 	log.Print("🗃️ connected to database")
 	s.DB = db
 
-	seed := flag.Bool("initdb", false, "initialze db if true")
+	initdb := flag.Bool("initdb", false, "initialze db if true")
+	seedUsers := flag.Bool("seed-users", false, "seed db if true")
 
 	flag.Parse()
-	if *seed {
+	if *initdb {
 		s.Init()
 	}
 
+	if *seedUsers {
+		s.seedUsers()
+	}
+
 	return nil
+}
+
+func (s *PostgresStore) seedUsers() {
+	fmt.Println("seeding users")
+	userService := services.NewUserService(s.DB)
+	userFile, err := os.Open("./seed/users.json")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	defer userFile.Close()
+
+	byteValue, err := io.ReadAll(userFile)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	users := []types.CreateUserRequest{}
+	json.Unmarshal(byteValue, &users)
+	for i, element := range users {
+		if _, err := userService.Create(element); err != nil {
+			fmt.Printf("Failed to add user %s due to %s", element.Email, err)
+			continue
+		}
+		fmt.Printf("Inserting %d", i)
+	}
+	os.Exit(0)
+
 }
 
 func (s *PostgresStore) Init() {
@@ -101,7 +139,6 @@ func CreateUpdatedAtFunction(db *sql.DB) {
 	if err != nil {
 		log.Printf("Failed to create function update_updated_on_user_task %s", err)
 		os.Exit(1)
-
 	}
 	log.Println("Created function update_updated_on_user_task")
 }

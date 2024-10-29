@@ -1,0 +1,75 @@
+[
+  {
+    "first_name": "Akshay",
+    "last_name": "Krishna",
+    "email": "akshay@test.com",
+    "password": "root"
+  },
+  {
+    "first_name": "Sreelakshmi",
+    "last_name": "Dinesh",
+    "email": "sree@test.com",
+    "password": "root"
+  },
+  {
+    "first_name": "Nessy",
+    "last_name": "Pyett",
+    "email": "npyett0@earthlink.net",
+    "password": "root"
+  },
+  {
+    "first_name": "Paulina",
+    "last_name": "Keavy",
+    "email": "pkeavy1@github.io",
+    "password": "root"
+  },
+  {
+    "first_name": "Rafaello",
+    "last_name": "Scarse",
+    "email": "rscarse2@jigsy.com",
+    "password": "root"
+  },
+  {
+    "first_name": "Nicky",
+    "last_name": "Barbisch",
+    "email": "nbarbisch3@nyu.edu",
+    "password": "root"
+  },
+  {
+    "first_name": "Christie",
+    "last_name": "Hammon",
+    "email": "chammon4@nationalgeographic.com",
+    "password": "root"
+  },
+  {
+    "first_name": "Raychel",
+    "last_name": "Kirkness",
+    "email": "rkirkness5@pen.io",
+    "password": "root"
+  },
+  {
+    "first_name": "Konstantin",
+    "last_name": "Bohman",
+    "email": "kbohman6@china.com.cn",
+    "password": "root"
+  },
+  {
+    "first_name": "Berthe",
+    "last_name": "De Vere",
+    "email": "bdevere7@auda.org.au",
+    "password": "root"
+  },
+  {
+    "first_name": "Yvon",
+    "last_name": "Dreier",
+    "email": "ydreier8@furl.net",
+    "password": "root"
+  },
+  {
+    "first_name": "Jana",
+    "last_name": "Corragan",
+    "email": "jcorragan9@4shared.com",
+    "password": "root"
+  }
+]
+
