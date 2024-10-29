@@ -47,7 +47,7 @@ func (m *UserModel) GetPasswordByEmail(email string) (*User, error) {
 	user := User{}
 	if err := row.Scan(&user.ID, &user.Password); err != nil {
 		if err == sql.ErrNoRows {
-			log.Printf("profile with email:%s not found", email)
+			log.Printf("profile with email: %s not found", email)
 			return nil, utils.NotFound
 		}
 		log.Printf("failed to retrieve for email: %s due to error:%s", email, err)

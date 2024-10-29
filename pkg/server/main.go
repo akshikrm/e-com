@@ -44,7 +44,7 @@ func RegisterUserApi(r *http.ServeMux, store Database) {
 	r.HandleFunc("PUT /profile", api.RouteHandler(api.IsAuthenticated(userApi.UpdateProfile)))
 
 	r.HandleFunc("GET /users", api.RouteHandler(userApi.GetAll))
-	r.HandleFunc("GET /users/{id}", api.RouteHandler(userApi.GetOne))
-	r.HandleFunc("PUT /users/{id}", api.RouteHandler(userApi.Update))
-	r.HandleFunc("DELETE /users/{id}", api.RouteHandler(userApi.Delete))
+	// r.HandleFunc("GET /users/{id}", api.RouteHandler(userApi.GetOne))
+	// r.HandleFunc("PUT /users/{id}", api.RouteHandler(userApi.Update))
+	// r.HandleFunc("DELETE /users/{id}", api.RouteHandler(userApi.Delete))
 }
