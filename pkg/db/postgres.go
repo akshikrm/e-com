@@ -33,17 +33,56 @@ func (s *PostgresStore) Connect() error {
 
 	initdb := flag.Bool("initdb", false, "initialze db if true")
 	seedUsers := flag.Bool("seed-users", false, "seed db if true")
+	nukeDb := flag.Bool("nuke-db", false, "clear everything in the database")
 
 	flag.Parse()
 	if *initdb {
 		s.Init()
+		os.Exit(0)
 	}
 
 	if *seedUsers {
 		s.seedUsers()
+		os.Exit(0)
 	}
 
+	if *nukeDb {
+		s.NukeDB()
+		os.Exit(0)
+	}
 	return nil
+}
+
+func (s *PostgresStore) NukeDB() {
+	if _, err := s.DB.Exec("drop trigger update_user_task_updated_on on profiles"); err != nil {
+		fmt.Printf("Failed to drop update_user_task_updated_on on profiles due to %s", err)
+	} else {
+		fmt.Println("drop update_user_task_updated_on on profiles")
+	}
+
+	if _, err := s.DB.Exec("drop table profiles"); err != nil {
+		fmt.Printf("Failed to drop profiles due to %s", err)
+	} else {
+		fmt.Println("drop profiles")
+	}
+
+	if _, err := s.DB.Exec("drop trigger update_user_task_updated_on on users"); err != nil {
+		fmt.Printf("Failed to drop update_user_task_updated_on on users due to %s", err)
+	} else {
+		fmt.Println("drop update_user_task_updated_on on users")
+	}
+
+	if _, err := s.DB.Exec("drop table users"); err != nil {
+		fmt.Printf("Failed to drop users due to %s", err)
+	} else {
+		fmt.Println("drop users")
+	}
+
+	if _, err := s.DB.Exec("drop function update_updated_on_user_task"); err != nil {
+		fmt.Printf("Failed to drop function update_updated_on_user_task due to %s", err)
+	} else {
+		fmt.Println("drop function update_updated_on_user_task")
+	}
 }
 
 func (s *PostgresStore) seedUsers() {
@@ -71,7 +110,6 @@ func (s *PostgresStore) seedUsers() {
 		}
 		fmt.Printf("Inserting %d", i)
 	}
-	os.Exit(0)
 
 }
 
@@ -86,15 +124,13 @@ func (s *PostgresStore) Init() {
 	CreateUpdatedAtTriggerOnUsers(s.DB)
 	CreateUpdatedAtTriggerOnProfiles(s.DB)
 	log.Println("successfully created all triggers")
-
-	os.Exit(0)
 }
 
 func CreateUserTable(db *sql.DB) {
 	log.Println("Creating users table")
 	query := `CREATE TABLE IF NOT EXISTS users (
 	id serial primary key,
-	password varchar,
+	password varchar NOT NULL,
 	created_at timestamp DEFAULT NOW() NOT NULL,
 	updated_at timestamp DEFAULT NOW() NOT NULL
 	)`
@@ -111,10 +147,10 @@ func CreateProfileTable(db *sql.DB) {
 	log.Println("Creating profiles table")
 	query := `CREATE TABLE IF NOT EXISTS profiles (
 	id serial primary key,
-	user_id int,
+	user_id int UNIQUE,
 	first_name varchar(50) DEFAULT '' NOT NULL,
 	last_name varchar(50) DEFAULT '' NOT NULL,
-	email varchar(50) DEFAULT '' NOT NULL,
+	email varchar(50) UNIQUE DEFAULT '' NOT NULL,
 	pincode varchar(10) DEFAULT '' NOT NULL,
 	address_one varchar(100) DEFAULT '' NOT NULL,
 	address_two varchar(100) DEFAULT '' NOT NULL,
