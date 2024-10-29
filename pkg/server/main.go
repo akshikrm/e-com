@@ -3,7 +3,6 @@ package server
 import (
 	"akshidas/e-com/pkg/api"
 	"akshidas/e-com/pkg/db"
-	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/services"
 	"log"
 	"net/http"
@@ -35,18 +34,17 @@ func (s *APIServer) Run() {
 }
 
 func RegisterUserApi(r *http.ServeMux, store Database) {
-	userModel := model.NewUserModel(store.(*db.PostgresStore).DB)
-	profileModel := model.NewProfileModel(store.(*db.PostgresStore).DB)
-	profileService := services.NewProfileService(profileModel)
-	userService := services.NewUserService(userModel)
-	userApi := api.NewUserApi(userService, profileService)
+	userService := services.NewUserService(store.(*db.PostgresStore).DB)
+	userApi := api.NewUserApi(userService)
 
-	r.HandleFunc("GET /users", api.RouteHandler(userApi.GetAll))
-	r.HandleFunc("GET /profile", api.RouteHandler(api.IsAuthenticated(userApi.GetProfile)))
-	r.HandleFunc("PUT /profile", api.RouteHandler(api.IsAuthenticated(userApi.UpdateProfile)))
 	r.HandleFunc("POST /users", api.RouteHandler(userApi.Create))
 	r.HandleFunc("POST /login", api.RouteHandler(userApi.Login))
-	r.HandleFunc("GET /users/{id}", api.RouteHandler(userApi.GetOne))
-	r.HandleFunc("PUT /users/{id}", api.RouteHandler(userApi.Update))
-	r.HandleFunc("DELETE /users/{id}", api.RouteHandler(userApi.Delete))
+
+	r.HandleFunc("GET /profile", api.RouteHandler(api.IsAuthenticated(userApi.GetProfile)))
+	r.HandleFunc("PUT /profile", api.RouteHandler(api.IsAuthenticated(userApi.UpdateProfile)))
+
+	r.HandleFunc("GET /users", api.RouteHandler(userApi.GetAll))
+	// r.HandleFunc("GET /users/{id}", api.RouteHandler(userApi.GetOne))
+	// r.HandleFunc("PUT /users/{id}", api.RouteHandler(userApi.Update))
+	// r.HandleFunc("DELETE /users/{id}", api.RouteHandler(userApi.Delete))
 }

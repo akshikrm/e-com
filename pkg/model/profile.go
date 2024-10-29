@@ -11,12 +11,16 @@ import (
 
 type Profile struct {
 	ID          int       `json:"id"`
+	FirstName   string    `json:"first_name"`
+	LastName    string    `json:"last_name"`
+	Email       string    `json:"email"`
 	Pincode     string    `json:"pincode"`
 	AddressOne  string    `json:"address_one"`
 	AddressTwo  string    `json:"address_two"`
 	PhoneNumber string    `json:"phone_number"`
 	UserID      int       `json:"-"`
 	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type ProfileModel struct {
@@ -31,11 +35,15 @@ func (p *ProfileModel) GetByUserId(userId int) (*Profile, error) {
 	if err := row.Scan(
 		&savedProfile.ID,
 		&savedProfile.UserID,
+		&savedProfile.FirstName,
+		&savedProfile.LastName,
+		&savedProfile.Email,
 		&savedProfile.Pincode,
 		&savedProfile.AddressOne,
 		&savedProfile.AddressTwo,
 		&savedProfile.PhoneNumber,
 		&savedProfile.CreatedAt,
+		&savedProfile.UpdatedAt,
 	); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, utils.NotFound
@@ -49,19 +57,17 @@ func (p *ProfileModel) GetByUserId(userId int) (*Profile, error) {
 
 func (p *ProfileModel) Create(profile *types.NewProfileRequest) (int, error) {
 	query := `insert into
-	profiles (pincode, address_one, address_two, phone_number, user_id, created_at)
-	values ($1, $2, $3, $4, $5, $6)
+	profiles (first_name,last_name, email, user_id)
+	values ($1, $2, $3, $4)
 	returning id
 	`
 
-	log.Println("Create profile")
+	log.Println("Creating profile")
 	row := p.DB.QueryRow(query,
-		profile.AddressOne,
-		profile.AddressTwo,
-		profile.Pincode,
-		profile.PhoneNumber,
+		profile.FirstName,
+		profile.LastName,
+		profile.Email,
 		profile.UserID,
-		time.Now().UTC(),
 	)
 
 	savedProfile := Profile{}
@@ -74,13 +80,16 @@ func (p *ProfileModel) Create(profile *types.NewProfileRequest) (int, error) {
 }
 
 func (p *ProfileModel) UpdateProfileByUserID(userId int, profile *types.UpdateProfileRequest) error {
-	query := `update profiles set pincode=$1, address_one=$2, address_two=$3, phone_number=$4 where user_id=$5`
+	query := `update profiles set pincode=$1, address_one=$2, address_two=$3, phone_number=$4, first_name=$5, last_name=$6, email=$7 where user_id=$8`
 
 	result, err := p.DB.Exec(query,
 		profile.Pincode,
 		profile.AddressOne,
 		profile.AddressTwo,
 		profile.PhoneNumber,
+		profile.FirstName,
+		profile.LastName,
+		profile.Email,
 		userId,
 	)
 

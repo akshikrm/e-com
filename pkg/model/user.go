@@ -4,15 +4,13 @@ import (
 	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
 	"database/sql"
+	"fmt"
 	"log"
 	"time"
 )
 
 type User struct {
 	ID        int       `json:"id"`
-	FirstName string    `json:"first_name"`
-	LastName  string    `json:"last_name"`
-	Email     string    `json:"email"`
 	Password  string    `json:"-"`
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -40,6 +38,23 @@ func (m *UserModel) Get() ([]*User, error) {
 	}
 
 	return users, nil
+}
+
+func (m *UserModel) GetPasswordByEmail(email string) (*User, error) {
+	query := `select user_id,password from users inner join profiles on users.id = profiles.user_id where email=$1;`
+	row := m.DB.QueryRow(query, email)
+
+	user := User{}
+	if err := row.Scan(&user.ID, &user.Password); err != nil {
+		if err == sql.ErrNoRows {
+			log.Printf("profile with email: %s not found", email)
+			return nil, utils.NotFound
+		}
+		log.Printf("failed to retrieve for email: %s due to error:%s", email, err)
+		return nil, utils.ServerError
+	}
+	fmt.Println(user)
+	return &user, nil
 }
 
 func (m *UserModel) GetOne(id int) (*User, error) {
@@ -71,16 +86,13 @@ func (m *UserModel) GetUserByEmail(email string) (*User, error) {
 
 func (m *UserModel) Create(user types.CreateUserRequest) (int, error) {
 	query := `insert into 
-	users (first_name, last_name, password, email, created_at)
-	values($1, $2, $3, $4, $5)
+	users (password, created_at)
+	values($1, $2)
 	returning id
 	`
 
 	row := m.DB.QueryRow(query,
-		user.FirstName,
-		user.LastName,
 		user.Password,
-		user.Email,
 		time.Now().UTC(),
 	)
 	log.Printf("Created user %v", user)
@@ -131,9 +143,6 @@ func ScanRows(rows *sql.Rows) (*User, error) {
 	user := &User{}
 	err := rows.Scan(
 		&user.ID,
-		&user.FirstName,
-		&user.LastName,
-		&user.Email,
 		&user.Password,
 		&user.CreatedAt,
 	)
@@ -149,9 +158,6 @@ func ScanRow(row *sql.Row) (*User, error) {
 	user := &User{}
 	err := row.Scan(
 		&user.ID,
-		&user.FirstName,
-		&user.LastName,
-		&user.Email,
 		&user.Password,
 		&user.CreatedAt,
 	)

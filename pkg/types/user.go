@@ -20,14 +20,16 @@ type LoginUserRequest struct {
 }
 
 type NewProfileRequest struct {
-	Pincode     string `json:"pincode"`
-	AddressOne  string `json:"address_one"`
-	AddressTwo  string `json:"address_two"`
-	PhoneNumber string `json:"phone_number"`
-	UserID      int    `json:"user_id"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	UserID    int    `json:"user_id"`
 }
 
 type UpdateProfileRequest struct {
+	FirstName   string `json:"first_name"`
+	LastName    string `json:"last_name"`
+	Email       string `json:"email"`
 	Pincode     string `json:"pincode"`
 	AddressOne  string `json:"address_one"`
 	AddressTwo  string `json:"address_two"`

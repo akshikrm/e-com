@@ -41,6 +41,14 @@ func (s *PostgresStore) Init() {
 	CreateUserTable(s.DB)
 	CreateProfileTable(s.DB)
 	log.Println("successfully created all tables")
+
+	CreateUpdatedAtFunction(s.DB)
+	log.Println("successfully created all functions")
+
+	CreateUpdatedAtTriggerOnUsers(s.DB)
+	CreateUpdatedAtTriggerOnProfiles(s.DB)
+	log.Println("successfully created all triggers")
+
 	os.Exit(0)
 }
 
@@ -48,17 +56,15 @@ func CreateUserTable(db *sql.DB) {
 	log.Println("Creating users table")
 	query := `CREATE TABLE IF NOT EXISTS users (
 	id serial primary key,
-	first_name varchar(50),
-	last_name varchar(50),
-	email varchar(50),
 	password varchar,
-	created_at timestamp
+	created_at timestamp DEFAULT NOW() NOT NULL,
+	updated_at timestamp DEFAULT NOW() NOT NULL
 	)`
 
 	_, err := db.Exec(query)
 	if err != nil {
 		log.Printf("Failed to create users table %s", err)
-		return
+		os.Exit(1)
 	}
 	log.Println("Created users table")
 }
@@ -68,20 +74,58 @@ func CreateProfileTable(db *sql.DB) {
 	query := `CREATE TABLE IF NOT EXISTS profiles (
 	id serial primary key,
 	user_id int,
-	pincode varchar(10),
-	address_one varchar(100),
-	address_two varchar(100),
-	phone_number varchar(15),
-	created_at timestamp,
+	first_name varchar(50) DEFAULT '' NOT NULL,
+	last_name varchar(50) DEFAULT '' NOT NULL,
+	email varchar(50) DEFAULT '' NOT NULL,
+	pincode varchar(10) DEFAULT '' NOT NULL,
+	address_one varchar(100) DEFAULT '' NOT NULL,
+	address_two varchar(100) DEFAULT '' NOT NULL,
+	phone_number varchar(15) DEFAULT '' NOT NULL,
+	created_at timestamp DEFAULT NOW() NOT NULL,
+	updated_at timestamp DEFAULT NOW() NOT NULL,
 	CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id)
 	)`
 
 	_, err := db.Exec(query)
 	if err != nil {
 		log.Printf("Failed to create profiles table %s", err)
-		return
+		os.Exit(1)
 	}
 	log.Println("Created profiles table")
+}
+
+func CreateUpdatedAtFunction(db *sql.DB) {
+	log.Println("Creating updated at function")
+	query := `CREATE  FUNCTION update_updated_on_user_task() RETURNS TRIGGER AS $$ BEGIN NEW.updated_at = now(); RETURN NEW; END; $$ language 'plpgsql';`
+	_, err := db.Exec(query)
+	if err != nil {
+		log.Printf("Failed to create function update_updated_on_user_task %s", err)
+		os.Exit(1)
+
+	}
+	log.Println("Created function update_updated_on_user_task")
+}
+
+func CreateUpdatedAtTriggerOnUsers(db *sql.DB) {
+	log.Println("Creating trigger update_user_task_updated_on on users")
+	query := `CREATE TRIGGER update_user_task_updated_on BEFORE UPDATE ON users FOR EACH ROW EXECUTE PROCEDURE update_updated_on_user_task();`
+	_, err := db.Exec(query)
+	if err != nil {
+		log.Printf("Failed to create trigger update_user_task_updated_on on users due to %s", err)
+		os.Exit(1)
+	}
+	log.Println("Created trigger update_user_task_updated_on on users")
+}
+
+func CreateUpdatedAtTriggerOnProfiles(db *sql.DB) {
+	log.Println("Creating trigger update_user_task_updated_on on profiles")
+	query := `CREATE TRIGGER update_user_task_updated_on BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE PROCEDURE update_updated_on_user_task();`
+	_, err := db.Exec(query)
+	if err != nil {
+		log.Printf("Failed to create trigger update_user_task_updated_on on profiles due to %s", err)
+		os.Exit(1)
+	}
+	log.Println("Created trigger update_user_task_updated_on on profiles")
 }
 
 func (s *PostgresStore) getConnectionString() string {

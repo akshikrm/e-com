@@ -14,22 +14,16 @@ import (
 
 type UserServicer interface {
 	Get() ([]*model.User, error)
+	GetProfile(int) (*model.Profile, error)
 	GetOne(int) (*model.User, error)
-	Login(types.LoginUserRequest) (string, error)
+	Login(*types.LoginUserRequest) (string, error)
 	Create(types.CreateUserRequest) (string, error)
-	Update(int, types.UpdateUserRequest) (*model.User, error)
+	Update(int, *types.UpdateProfileRequest) (*model.Profile, error)
 	Delete(int) error
 }
 
-type ProfileServicer interface {
-	GetByUserId(int) (*model.Profile, error)
-	Create(*types.NewProfileRequest) error
-	Update(int, *types.UpdateProfileRequest) (*model.Profile, error)
-}
-
 type UserApi struct {
-	UserService    UserServicer
-	profileService ProfileServicer
+	UserService UserServicer
 }
 
 type UserProfile struct {
@@ -41,22 +35,12 @@ type UserProfile struct {
 }
 
 func (u *UserApi) GetProfile(id int, w http.ResponseWriter, r *http.Request) error {
-	user, err := u.UserService.GetOne(id)
+	userProfile, err := u.UserService.GetProfile(id)
 	if err != nil {
+		if err == utils.NotFound {
+			return writeJson(w, http.StatusNotFound, "not found")
+		}
 		return err
-	}
-
-	profile, err := u.profileService.GetByUserId(id)
-	if err != nil {
-		return err
-	}
-
-	userProfile := &UserProfile{
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
-		Profile:   profile,
 	}
 	return writeJson(w, http.StatusOK, userProfile)
 
@@ -68,7 +52,7 @@ func (u *UserApi) UpdateProfile(userId int, w http.ResponseWriter, r *http.Reque
 		return err
 	}
 
-	user, err := u.profileService.Update(userId, a)
+	user, err := u.UserService.Update(userId, a)
 	if err != nil {
 		return err
 	}
@@ -104,16 +88,19 @@ func (u *UserApi) GetOne(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (u *UserApi) Login(w http.ResponseWriter, r *http.Request) error {
-	a := &types.LoginUserRequest{}
-	if err := json.NewDecoder(r.Body).Decode(a); err != nil {
+	a := types.LoginUserRequest{}
+	if err := json.NewDecoder(r.Body).Decode(&a); err != nil {
 		if err == io.EOF {
 			return errors.New("invalid request")
 		}
 		return err
 	}
 
-	token, err := u.UserService.Login(*a)
+	token, err := u.UserService.Login(&a)
 	if err != nil {
+		if err == utils.NotFound {
+			return writeError(w, http.StatusNotFound, err)
+		}
 		return err
 	}
 
@@ -138,14 +125,14 @@ func (u *UserApi) Create(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (u *UserApi) Update(w http.ResponseWriter, r *http.Request) error {
-	a := &types.UpdateUserRequest{}
-	if err := json.NewDecoder(r.Body).Decode(a); err != nil {
+	a := types.UpdateProfileRequest{}
+	if err := json.NewDecoder(r.Body).Decode(&a); err != nil {
 		return err
 	}
 
 	id, err := parseId(r.PathValue("id"))
 
-	user, err := u.UserService.Update(id, *a)
+	user, err := u.UserService.Update(id, &a)
 	if err != nil {
 		return err
 	}
@@ -169,6 +156,6 @@ func (u *UserApi) Delete(w http.ResponseWriter, r *http.Request) error {
 	return writeJson(w, http.StatusOK, "deleted successfully")
 }
 
-func NewUserApi(userService UserServicer, profileService ProfileServicer) *UserApi {
-	return &UserApi{UserService: userService, profileService: profileService}
+func NewUserApi(userService UserServicer) *UserApi {
+	return &UserApi{UserService: userService}
 }
