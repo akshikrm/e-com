@@ -130,7 +130,7 @@ func CreateUserTable(db *sql.DB) {
 	log.Println("Creating users table")
 	query := `CREATE TABLE IF NOT EXISTS users (
 	id serial primary key,
-	password varchar,
+	password varchar NOT NULL,
 	created_at timestamp DEFAULT NOW() NOT NULL,
 	updated_at timestamp DEFAULT NOW() NOT NULL
 	)`
@@ -147,10 +147,10 @@ func CreateProfileTable(db *sql.DB) {
 	log.Println("Creating profiles table")
 	query := `CREATE TABLE IF NOT EXISTS profiles (
 	id serial primary key,
-	user_id int,
+	user_id int UNIQUE,
 	first_name varchar(50) DEFAULT '' NOT NULL,
 	last_name varchar(50) DEFAULT '' NOT NULL,
-	email varchar(50) DEFAULT '' NOT NULL,
+	email varchar(50) UNIQUE DEFAULT '' NOT NULL,
 	pincode varchar(10) DEFAULT '' NOT NULL,
 	address_one varchar(100) DEFAULT '' NOT NULL,
 	address_two varchar(100) DEFAULT '' NOT NULL,
