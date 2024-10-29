@@ -8,3 +8,6 @@ run: build
 initdb: build
 	@./dist --initdb 
 
+
+seed-users: build
+	@./dist --seed-users

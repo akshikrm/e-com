@@ -1,12 +1,15 @@
 package db
 
 import (
+	"akshidas/e-com/pkg/services"
+	"akshidas/e-com/pkg/types"
 	"database/sql"
 	"flag"
 	"fmt"
-	_ "github.com/lib/pq"
 	"log"
 	"os"
+
+	_ "github.com/lib/pq"
 )
 
 type PostgresStore struct {
@@ -27,14 +30,38 @@ func (s *PostgresStore) Connect() error {
 	log.Print("🗃️ connected to database")
 	s.DB = db
 
-	seed := flag.Bool("initdb", false, "initialze db if true")
+	initdb := flag.Bool("initdb", false, "initialze db if true")
+	seedUsers := flag.Bool("seed-users", false, "seed db if true")
 
 	flag.Parse()
-	if *seed {
+	if *initdb {
 		s.Init()
 	}
 
+	if *seedUsers {
+		s.seedUsers()
+	}
+
 	return nil
+}
+
+func (s *PostgresStore) seedUsers() {
+	fmt.Println("seeding users")
+	userService := services.NewUserService(s.DB)
+	users := []types.CreateUserRequest{
+		{FirstName: "Akshay", LastName: "Krishna", Email: "akshay@test.com", Password: "root"},
+		{FirstName: "Sreelakshmi", LastName: "Dinesh", Email: "sree@test.com", Password: "root"},
+	}
+	for i, element := range users {
+		if _, err := userService.Create(element); err != nil {
+			fmt.Printf("Failed to add user %s due to %s", element.Email, err)
+			continue
+		}
+		fmt.Printf("Inserting %d", i+1)
+
+	}
+	os.Exit(0)
+
 }
 
 func (s *PostgresStore) Init() {
