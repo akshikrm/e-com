@@ -17,6 +17,9 @@ seed-roles: build
 seed-resources: build
 	@./dist --seed-resources
 
+seed-permission: build
+		@./dist --seed-permission
+
 
 nuke-db: build
 	@./dist --nuke-db

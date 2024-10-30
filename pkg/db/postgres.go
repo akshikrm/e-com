@@ -19,10 +19,11 @@ type PostgresStore struct {
 }
 
 const (
-	CREATE_ROLE     = "CREATE TABLE IF NOT EXISTS roles ( id serial primary key, code varchar(10) NOT NULL, Name varchar(20) NOT NULL, Description varchar(120) NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL)"
-	CREATE_RESOURCE = "CREATE TABLE IF NOT EXISTS resources ( id serial primary key, code varchar(10) NOT NULL, Name varchar(20) NOT NULL, Description varchar(120) NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL)"
-	CREATE_USERS    = "CREATE TABLE IF NOT EXISTS users ( id serial primary key, password varchar NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL)"
-	CREATE_PROFILES = "CREATE TABLE IF NOT EXISTS profiles ( id serial primary key, user_id int UNIQUE, first_name varchar(50) DEFAULT '' NOT NULL, last_name varchar(50) DEFAULT '' NOT NULL, email varchar(50) UNIQUE DEFAULT '' NOT NULL, pincode varchar(10) DEFAULT '' NOT NULL, address_one varchar(100) DEFAULT '' NOT NULL, address_two varchar(100) DEFAULT '' NOT NULL, phone_number varchar(15) DEFAULT '' NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL, CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id))"
+	CREATE_ROLE       = "CREATE TABLE IF NOT EXISTS roles (id SERIAL PRIMARY KEY, code varchar(10) NOT NULL, Name varchar(20) NOT NULL, Description varchar(120) NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL)"
+	CREATE_RESOURCE   = "CREATE TABLE IF NOT EXISTS resources (id SERIAL PRIMARY KEY, code varchar(10) NOT NULL, Name varchar(20) NOT NULL, Description varchar(120) NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL)"
+	CREATE_PERMISSION = "CREATE TABLE IF NOT EXISTS permissions (id SERIAL PRIMARY KEY, role_code INT NOT NULL, resource_code INT NOT NULL, r BOOLEAN DEFAULT false NOT NULL, w BOOLEAN DEFAULT false NOT NULL, u BOOLEAN DEFAULT false NOT NULL, d BOOLEAN DEFAULT false NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL)"
+	CREATE_USERS      = "CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, password varchar NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL)"
+	CREATE_PROFILES   = "CREATE TABLE IF NOT EXISTS profiles (id SERIAL PRIMARY KEY, user_id int UNIQUE, first_name varchar(50) DEFAULT '' NOT NULL, last_name varchar(50) DEFAULT '' NOT NULL, email varchar(50) UNIQUE DEFAULT '' NOT NULL, pincode varchar(10) DEFAULT '' NOT NULL, address_one varchar(100) DEFAULT '' NOT NULL, address_two varchar(100) DEFAULT '' NOT NULL, phone_number varchar(15) DEFAULT '' NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL, CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id))"
 )
 
 func (s *PostgresStore) Connect() error {
@@ -43,6 +44,7 @@ func (s *PostgresStore) Connect() error {
 	seedUsers := flag.Bool("seed-users", false, "seed db if true")
 	seedRoles := flag.Bool("seed-roles", false, "seed db if true")
 	seedResources := flag.Bool("seed-resources", false, "seed db if true")
+	seedPermission := flag.Bool("seed-permission", false, "seed db if true")
 	nukeDb := flag.Bool("nuke-db", false, "clear everything in the database")
 	refreshDb := flag.Bool("refresh-db", false, "clear everything in the database")
 
@@ -66,12 +68,17 @@ func (s *PostgresStore) Connect() error {
 		s.seedUsers()
 		os.Exit(0)
 	}
+	if *seedPermission {
+		s.seedPermission()
+		os.Exit(0)
+	}
 
 	if *refreshDb {
 		s.NukeDB()
 		s.Init()
 		s.seedRoles()
 		s.seedResources()
+		s.seedPermission()
 		s.seedUsers()
 		os.Exit(0)
 	}
@@ -119,6 +126,7 @@ func (s *PostgresStore) NukeDB() {
 	dropTables(s.DB, "resources")
 	dropTables(s.DB, "profiles")
 	dropTables(s.DB, "users")
+	dropTables(s.DB, "permissions")
 	dropFunction(s.DB, "update_updated_on_user_task")
 }
 
@@ -132,9 +140,9 @@ func (s *PostgresStore) seedRoles() {
 	}
 	err := roleService.Create(&role)
 	if err != nil {
-		log.Printf("Failed to create role %s due to %s\n", role.Name, err)
+		log.Printf("Failed to seed role %s due to %s\n", role.Name, err)
 	}
-	log.Printf("Successfully created role %s\n", role.Name)
+	log.Printf("Successfully seed role %s\n", role.Name)
 }
 
 func (s *PostgresStore) seedResources() {
@@ -147,9 +155,24 @@ func (s *PostgresStore) seedResources() {
 	}
 	err := resourceService.Create(&resource)
 	if err != nil {
-		log.Printf("Failed to create resource %s due to %s\n", resource.Name, err)
+		log.Printf("Failed to seed resource %s due to %s\n", resource.Name, err)
 	}
-	log.Printf("Successfully created resource %s\n", resource.Name)
+	log.Printf("Successfully seed resource %s\n", resource.Name)
+}
+
+func (s *PostgresStore) seedPermission() {
+	log.Println("seeding permission")
+	permissionService := services.NewPermissionService(s.DB)
+	permission := types.CreateNewPermission{
+		RoleCode:     1,
+		ResourceCode: 1,
+		R:            true,
+	}
+	err := permissionService.Create(&permission)
+	if err != nil {
+		log.Printf("Failed to seed permission due to %s\n", err)
+	}
+	log.Println("Successfully seed permission")
 }
 
 func (s *PostgresStore) seedUsers() {
@@ -177,11 +200,13 @@ func (s *PostgresStore) seedUsers() {
 		}
 		log.Printf("Inserting %d\n", i)
 	}
+	log.Println("Successfully seed users")
 }
 
 func (s *PostgresStore) Init() {
 	CreateTable(s.DB, CREATE_ROLE, "roles")
 	CreateTable(s.DB, CREATE_RESOURCE, "resources")
+	CreateTable(s.DB, CREATE_PERMISSION, "permissions")
 	CreateTable(s.DB, CREATE_USERS, "users")
 	CreateTable(s.DB, CREATE_PROFILES, "profiles")
 	log.Println("successfully created all tables")
@@ -191,13 +216,14 @@ func (s *PostgresStore) Init() {
 
 	CreateUpdatedAtTrigger(s.DB, "users")
 	CreateUpdatedAtTrigger(s.DB, "profiles")
+	CreateUpdatedAtTrigger(s.DB, "permissions")
 	CreateUpdatedAtTrigger(s.DB, "roles")
 	CreateUpdatedAtTrigger(s.DB, "resources")
 	log.Println("successfully created all triggers")
 }
 
 func CreateTable(store *sql.DB, query string, table string) {
-	log.Printf("Creating roles %s\n", table)
+	log.Printf("Creating table %s\n", table)
 	_, err := store.Exec(query)
 	if err != nil {
 		log.Printf("Failed to create %s table due to %s\n", table, err)
