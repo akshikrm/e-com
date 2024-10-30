@@ -14,6 +14,12 @@ seed-users: build
 seed-roles: build
 	@./dist --seed-roles
 
+seed-resources: build
+	@./dist --seed-resources
+
+
 nuke-db: build
 	@./dist --nuke-db
 
+refresh-db: build 
+	@./dist --refresh-db

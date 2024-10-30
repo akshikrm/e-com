@@ -42,7 +42,9 @@ func (s *PostgresStore) Connect() error {
 	initdb := flag.Bool("init-db", false, "initialize db if true")
 	seedUsers := flag.Bool("seed-users", false, "seed db if true")
 	seedRoles := flag.Bool("seed-roles", false, "seed db if true")
+	seedResources := flag.Bool("seed-resources", false, "seed db if true")
 	nukeDb := flag.Bool("nuke-db", false, "clear everything in the database")
+	refreshDb := flag.Bool("refresh-db", false, "clear everything in the database")
 
 	flag.Parse()
 	if *initdb {
@@ -55,7 +57,21 @@ func (s *PostgresStore) Connect() error {
 		os.Exit(0)
 	}
 
+	if *seedResources {
+		s.seedResources()
+		os.Exit(0)
+	}
+
 	if *seedUsers {
+		s.seedUsers()
+		os.Exit(0)
+	}
+
+	if *refreshDb {
+		s.NukeDB()
+		s.Init()
+		s.seedRoles()
+		s.seedResources()
 		s.seedUsers()
 		os.Exit(0)
 	}
@@ -64,6 +80,7 @@ func (s *PostgresStore) Connect() error {
 		s.NukeDB()
 		os.Exit(0)
 	}
+
 	return nil
 }
 
@@ -118,6 +135,21 @@ func (s *PostgresStore) seedRoles() {
 		log.Printf("Failed to create role %s due to %s\n", role.Name, err)
 	}
 	log.Printf("Successfully created role %s\n", role.Name)
+}
+
+func (s *PostgresStore) seedResources() {
+	log.Println("seeding Resource")
+	resourceService := services.NewResourceService(s.DB)
+	resource := types.CreateResourceRequest{
+		Name:        "Product",
+		Code:        "product",
+		Description: "resource assigned to admin",
+	}
+	err := resourceService.Create(&resource)
+	if err != nil {
+		log.Printf("Failed to create resource %s due to %s\n", resource.Name, err)
+	}
+	log.Printf("Successfully created resource %s\n", resource.Name)
 }
 
 func (s *PostgresStore) seedUsers() {

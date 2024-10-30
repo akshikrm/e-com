@@ -9,13 +9,6 @@ type Group struct {
 	Roles       int // this will be accomplished by a table which connects groups and roles
 }
 
-type Resource struct {
-	ID          int
-	Code        string
-	Name        string
-	Description string
-}
-
 type RXWD struct {
 	R bool // Read
 	W bool // Write
