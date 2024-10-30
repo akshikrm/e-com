@@ -7,10 +7,11 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	_ "github.com/lib/pq"
 	"io"
 	"log"
 	"os"
+
+	_ "github.com/lib/pq"
 )
 
 type PostgresStore struct {
@@ -33,11 +34,17 @@ func (s *PostgresStore) Connect() error {
 
 	initdb := flag.Bool("initdb", false, "initialze db if true")
 	seedUsers := flag.Bool("seed-users", false, "seed db if true")
+	seedRoles := flag.Bool("seed-roles", false, "seed db if true")
 	nukeDb := flag.Bool("nuke-db", false, "clear everything in the database")
 
 	flag.Parse()
 	if *initdb {
 		s.Init()
+		os.Exit(0)
+	}
+
+	if *seedRoles {
+		s.seedRoles()
 		os.Exit(0)
 	}
 
@@ -53,36 +60,56 @@ func (s *PostgresStore) Connect() error {
 	return nil
 }
 
+func dropTables(store *sql.DB, table string) {
+	query := fmt.Sprintf("DROP TABLE IF EXISTS %s", table)
+	if _, err := store.Exec(query); err != nil {
+		fmt.Printf("Failed to drop %s due to %s\n", table, err)
+	} else {
+		fmt.Printf("drop %s\n", table)
+	}
+}
+
+func dropTrigger(store *sql.DB, trigger string, table string) {
+	query := fmt.Sprintf("DROP TRIGGER IF EXISTS %s on %s", trigger, table)
+	if _, err := store.Exec(query); err != nil {
+		fmt.Printf("Failed to drop trigger %s  on table %s, due to %s\n", trigger, table, err)
+	} else {
+		fmt.Printf("drop trigger %s on table %s\n", trigger, table)
+	}
+}
+
+func dropFunction(store *sql.DB, function string) {
+	query := fmt.Sprintf("DROP FUNCTION IF EXISTS %s\n", function)
+	if _, err := store.Exec(query); err != nil {
+		fmt.Printf("Failed to drop function %s due to %s", function, err)
+	} else {
+		fmt.Printf("drop trigger %s\n", function)
+	}
+}
+
 func (s *PostgresStore) NukeDB() {
-	if _, err := s.DB.Exec("drop trigger update_user_task_updated_on on profiles"); err != nil {
-		fmt.Printf("Failed to drop update_user_task_updated_on on profiles due to %s", err)
-	} else {
-		fmt.Println("drop update_user_task_updated_on on profiles")
-	}
+	dropTrigger(s.DB, "update_user_task_updated_on", "roles")
+	dropTrigger(s.DB, "update_user_task_updated_on", "users")
+	dropTrigger(s.DB, "update_user_task_updated_on", "profiles")
+	dropTables(s.DB, "roles")
+	dropTables(s.DB, "profiles")
+	dropTables(s.DB, "users")
+	dropFunction(s.DB, "update_updated_on_user_task")
+}
 
-	if _, err := s.DB.Exec("drop table profiles"); err != nil {
-		fmt.Printf("Failed to drop profiles due to %s", err)
-	} else {
-		fmt.Println("drop profiles")
+func (s *PostgresStore) seedRoles() {
+	fmt.Println("seeding roles")
+	roleService := services.NewRoleService(s.DB)
+	role := types.CreateRoleRequest{
+		Name:        "Admin",
+		Code:        "admin",
+		Description: "Role assigned to admin",
 	}
-
-	if _, err := s.DB.Exec("drop trigger update_user_task_updated_on on users"); err != nil {
-		fmt.Printf("Failed to drop update_user_task_updated_on on users due to %s", err)
-	} else {
-		fmt.Println("drop update_user_task_updated_on on users")
+	err := roleService.Create(&role)
+	if err != nil {
+		log.Printf("Failed to create role %s due to %s", role.Name, err)
 	}
-
-	if _, err := s.DB.Exec("drop table users"); err != nil {
-		fmt.Printf("Failed to drop users due to %s", err)
-	} else {
-		fmt.Println("drop users")
-	}
-
-	if _, err := s.DB.Exec("drop function update_updated_on_user_task"); err != nil {
-		fmt.Printf("Failed to drop function update_updated_on_user_task due to %s", err)
-	} else {
-		fmt.Println("drop function update_updated_on_user_task")
-	}
+	log.Printf("Successfully created role %s", role.Name)
 }
 
 func (s *PostgresStore) seedUsers() {
@@ -121,8 +148,9 @@ func (s *PostgresStore) Init() {
 	CreateUpdatedAtFunction(s.DB)
 	log.Println("successfully created all functions")
 
-	CreateUpdatedAtTriggerOnUsers(s.DB)
-	CreateUpdatedAtTriggerOnProfiles(s.DB)
+	CreateUpdatedAtTrigger(s.DB, "users")
+	CreateUpdatedAtTrigger(s.DB, "profiles")
+	CreateUpdatedAtTrigger(s.DB, "roles")
 	log.Println("successfully created all triggers")
 }
 
@@ -199,28 +227,17 @@ func CreateUpdatedAtFunction(db *sql.DB) {
 	log.Println("Created function update_updated_on_user_task")
 }
 
-func CreateUpdatedAtTriggerOnUsers(db *sql.DB) {
-	log.Println("Creating trigger update_user_task_updated_on on users")
-	query := `CREATE TRIGGER update_user_task_updated_on BEFORE UPDATE ON users FOR EACH ROW EXECUTE PROCEDURE update_updated_on_user_task();`
+func CreateUpdatedAtTrigger(db *sql.DB, table string) {
+	log.Printf("Creating trigger update_user_task_updated_on on %s", table)
+	query := fmt.Sprintf(`CREATE TRIGGER update_user_task_updated_on BEFORE UPDATE ON %s FOR EACH ROW EXECUTE PROCEDURE update_updated_on_user_task();`, table)
+
 	_, err := db.Exec(query)
 	if err != nil {
-		log.Printf("Failed to create trigger update_user_task_updated_on on users due to %s", err)
+		log.Printf("Failed to create trigger update_user_task_updated_on on %s due to %s", table, err)
 		os.Exit(1)
 	}
-	log.Println("Created trigger update_user_task_updated_on on users")
+	log.Printf("Created trigger update_user_task_updated_on on %s", table)
 }
-
-func CreateUpdatedAtTriggerOnProfiles(db *sql.DB) {
-	log.Println("Creating trigger update_user_task_updated_on on profiles")
-	query := `CREATE TRIGGER update_user_task_updated_on BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE PROCEDURE update_updated_on_user_task();`
-	_, err := db.Exec(query)
-	if err != nil {
-		log.Printf("Failed to create trigger update_user_task_updated_on on profiles due to %s", err)
-		os.Exit(1)
-	}
-	log.Println("Created trigger update_user_task_updated_on on profiles")
-}
-
 func (s *PostgresStore) getConnectionString() string {
 	db_user := os.Getenv("DB_USER")
 	db_name := os.Getenv("DB_NAME")

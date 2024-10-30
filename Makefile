@@ -11,6 +11,9 @@ initdb: build
 seed-users: build
 	@./dist --seed-users
 
+seed-roles: build
+	@./dist --seed-roles
+
 nuke-db: build
 	@./dist --nuke-db
 

@@ -3,6 +3,7 @@ package services
 import (
 	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/types"
+	"database/sql"
 )
 
 type RoleModeler interface {
@@ -35,4 +36,11 @@ func (r *RoleService) Update(id int, newRole *types.CreateRoleRequest) (*model.R
 
 func (r *RoleService) Delete(id int) error {
 	return r.roleModel.Delete(id)
+}
+
+func NewRoleService(database *sql.DB) *RoleService {
+	roleModel := model.NewRoleModel(database)
+	return &RoleService{
+		roleModel: roleModel,
+	}
 }
