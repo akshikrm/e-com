@@ -1,6 +1,7 @@
 package model
 
 import (
+	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
 	"database/sql"
 	"log"
@@ -14,12 +15,6 @@ type Role struct {
 	Description string    `json:"description"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
-}
-
-type CreateRoleRequest struct {
-	Code        string `json:"code"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
 }
 
 type RoleModel struct {
@@ -55,7 +50,7 @@ func (r *RoleModel) GetOne(id int) (*Role, error) {
 	return role, nil
 }
 
-func (r *RoleModel) Create(newRole *CreateRoleRequest) error {
+func (r *RoleModel) Create(newRole *types.CreateRoleRequest) error {
 	query := `INSERT INTO roles(name, code, description)
 	VALUES($1,$2, $3)
 	`
@@ -71,7 +66,7 @@ func (r *RoleModel) Create(newRole *CreateRoleRequest) error {
 	return nil
 }
 
-func (r *RoleModel) Update(id int, newRole *CreateRoleRequest) (*Role, error) {
+func (r *RoleModel) Update(id int, newRole *types.CreateRoleRequest) (*Role, error) {
 	query := `UPDATE roles SET name=$1, code=$2, description=$3 returning *`
 	row := r.store.QueryRow(query,
 		newRole.Name,
