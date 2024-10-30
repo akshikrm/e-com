@@ -5,8 +5,8 @@ run: build
 	@clear
 	@./dist
 
-initdb: build
-	@./dist --initdb 
+init-db: build
+	@./dist --init-db 
 
 seed-users: build
 	@./dist --seed-users
