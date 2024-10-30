@@ -18,6 +18,12 @@ type PostgresStore struct {
 	DB *sql.DB
 }
 
+const (
+	CREATE_ROLE     = "CREATE TABLE IF NOT EXISTS roles ( id serial primary key, code varchar(10) NOT NULL, Name varchar(20) NOT NULL, Description varchar(120) NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL)"
+	CREATE_USERS    = "CREATE TABLE IF NOT EXISTS users ( id serial primary key, password varchar NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL)"
+	CREATE_PROFILES = "CREATE TABLE IF NOT EXISTS profiles ( id serial primary key, user_id int UNIQUE, first_name varchar(50) DEFAULT '' NOT NULL, last_name varchar(50) DEFAULT '' NOT NULL, email varchar(50) UNIQUE DEFAULT '' NOT NULL, pincode varchar(10) DEFAULT '' NOT NULL, address_one varchar(100) DEFAULT '' NOT NULL, address_two varchar(100) DEFAULT '' NOT NULL, phone_number varchar(15) DEFAULT '' NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL, CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id))"
+)
+
 func (s *PostgresStore) Connect() error {
 	db, err := sql.Open("postgres", s.getConnectionString())
 
@@ -29,7 +35,7 @@ func (s *PostgresStore) Connect() error {
 		return err
 	}
 
-	log.Print("🗃️ connected to database")
+	log.Println("🗃️ connected to database")
 	s.DB = db
 
 	initdb := flag.Bool("initdb", false, "initialze db if true")
@@ -63,27 +69,27 @@ func (s *PostgresStore) Connect() error {
 func dropTables(store *sql.DB, table string) {
 	query := fmt.Sprintf("DROP TABLE IF EXISTS %s", table)
 	if _, err := store.Exec(query); err != nil {
-		fmt.Printf("Failed to drop %s due to %s\n", table, err)
+		log.Printf("Failed to drop %s due to %s\n", table, err)
 	} else {
-		fmt.Printf("drop %s\n", table)
+		log.Printf("drop %s\n", table)
 	}
 }
 
 func dropTrigger(store *sql.DB, trigger string, table string) {
 	query := fmt.Sprintf("DROP TRIGGER IF EXISTS %s on %s", trigger, table)
 	if _, err := store.Exec(query); err != nil {
-		fmt.Printf("Failed to drop trigger %s  on table %s, due to %s\n", trigger, table, err)
+		log.Printf("Failed to drop trigger %s  on table %s, due to %s\n", trigger, table, err)
 	} else {
-		fmt.Printf("drop trigger %s on table %s\n", trigger, table)
+		log.Printf("drop trigger %s on table %s\n", trigger, table)
 	}
 }
 
 func dropFunction(store *sql.DB, function string) {
 	query := fmt.Sprintf("DROP FUNCTION IF EXISTS %s\n", function)
 	if _, err := store.Exec(query); err != nil {
-		fmt.Printf("Failed to drop function %s due to %s", function, err)
+		log.Printf("Failed to drop function %s due to %s", function, err)
 	} else {
-		fmt.Printf("drop trigger %s\n", function)
+		log.Printf("drop trigger %s\n", function)
 	}
 }
 
@@ -98,7 +104,7 @@ func (s *PostgresStore) NukeDB() {
 }
 
 func (s *PostgresStore) seedRoles() {
-	fmt.Println("seeding roles")
+	log.Println("seeding roles")
 	roleService := services.NewRoleService(s.DB)
 	role := types.CreateRoleRequest{
 		Name:        "Admin",
@@ -107,24 +113,24 @@ func (s *PostgresStore) seedRoles() {
 	}
 	err := roleService.Create(&role)
 	if err != nil {
-		log.Printf("Failed to create role %s due to %s", role.Name, err)
+		log.Printf("Failed to create role %s due to %s\n", role.Name, err)
 	}
-	log.Printf("Successfully created role %s", role.Name)
+	log.Printf("Successfully created role %s\n", role.Name)
 }
 
 func (s *PostgresStore) seedUsers() {
-	fmt.Println("seeding users")
+	log.Println("seeding users")
 	userService := services.NewUserService(s.DB)
 	userFile, err := os.Open("./seed/users.json")
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		os.Exit(1)
 	}
 	defer userFile.Close()
 
 	byteValue, err := io.ReadAll(userFile)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		os.Exit(1)
 	}
 
@@ -132,17 +138,17 @@ func (s *PostgresStore) seedUsers() {
 	json.Unmarshal(byteValue, &users)
 	for i, element := range users {
 		if _, err := userService.Create(element); err != nil {
-			fmt.Printf("Failed to add user %s due to %s", element.Email, err)
+			log.Printf("Failed to add user %s due to %s\n", element.Email, err)
 			continue
 		}
-		fmt.Printf("Inserting %d", i)
+		log.Printf("Inserting %d\n", i)
 	}
 }
 
 func (s *PostgresStore) Init() {
-	CreateRoleTable(s.DB)
-	CreateUserTable(s.DB)
-	CreateProfileTable(s.DB)
+	CreateTable(s.DB, CREATE_ROLE, "roles")
+	CreateTable(s.DB, CREATE_USERS, "users")
+	CreateTable(s.DB, CREATE_PROFILES, "profiles")
 	log.Println("successfully created all tables")
 
 	CreateUpdatedAtFunction(s.DB)
@@ -154,66 +160,15 @@ func (s *PostgresStore) Init() {
 	log.Println("successfully created all triggers")
 }
 
-func CreateRoleTable(db *sql.DB) {
-	log.Println("Creating roles table")
-	query := `CREATE TABLE IF NOT EXISTS roles (
-	id serial primary key,
-	code varchar(10) NOT NULL,
-	Name varchar(20) NOT NULL,
-	Description varchar(120) NOT NULL,
-	created_at timestamp DEFAULT NOW() NOT NULL,
-	updated_at timestamp DEFAULT NOW() NOT NULL
-	)`
-
-	_, err := db.Exec(query)
+func CreateTable(store *sql.DB, query string, table string) {
+	log.Printf("Creating roles %s\n", table)
+	_, err := store.Exec(query)
 	if err != nil {
-		log.Printf("Failed to create roles table %s", err)
+		log.Printf("Failed to create %s table due to %s\n", table, err)
 		os.Exit(1)
 	}
-	log.Println("Created roles table")
+	log.Printf("Created %s table\n", table)
 
-}
-
-func CreateUserTable(db *sql.DB) {
-	log.Println("Creating users table")
-	query := `CREATE TABLE IF NOT EXISTS users (
-	id serial primary key,
-	password varchar NOT NULL,
-	created_at timestamp DEFAULT NOW() NOT NULL,
-	updated_at timestamp DEFAULT NOW() NOT NULL
-	)`
-
-	_, err := db.Exec(query)
-	if err != nil {
-		log.Printf("Failed to create users table %s", err)
-		os.Exit(1)
-	}
-	log.Println("Created users table")
-}
-
-func CreateProfileTable(db *sql.DB) {
-	log.Println("Creating profiles table")
-	query := `CREATE TABLE IF NOT EXISTS profiles (
-	id serial primary key,
-	user_id int UNIQUE,
-	first_name varchar(50) DEFAULT '' NOT NULL,
-	last_name varchar(50) DEFAULT '' NOT NULL,
-	email varchar(50) UNIQUE DEFAULT '' NOT NULL,
-	pincode varchar(10) DEFAULT '' NOT NULL,
-	address_one varchar(100) DEFAULT '' NOT NULL,
-	address_two varchar(100) DEFAULT '' NOT NULL,
-	phone_number varchar(15) DEFAULT '' NOT NULL,
-	created_at timestamp DEFAULT NOW() NOT NULL,
-	updated_at timestamp DEFAULT NOW() NOT NULL,
-	CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id)
-	)`
-
-	_, err := db.Exec(query)
-	if err != nil {
-		log.Printf("Failed to create profiles table %s", err)
-		os.Exit(1)
-	}
-	log.Println("Created profiles table")
 }
 
 func CreateUpdatedAtFunction(db *sql.DB) {
@@ -221,22 +176,22 @@ func CreateUpdatedAtFunction(db *sql.DB) {
 	query := `CREATE  FUNCTION update_updated_on_user_task() RETURNS TRIGGER AS $$ BEGIN NEW.updated_at = now(); RETURN NEW; END; $$ language 'plpgsql';`
 	_, err := db.Exec(query)
 	if err != nil {
-		log.Printf("Failed to create function update_updated_on_user_task %s", err)
+		log.Printf("Failed to create function update_updated_on_user_task %s\n", err)
 		os.Exit(1)
 	}
-	log.Println("Created function update_updated_on_user_task")
+	log.Printf("Created function update_updated_on_user_task\n")
 }
 
 func CreateUpdatedAtTrigger(db *sql.DB, table string) {
-	log.Printf("Creating trigger update_user_task_updated_on on %s", table)
+	log.Printf("Creating trigger update_user_task_updated_on on %s\n", table)
 	query := fmt.Sprintf(`CREATE TRIGGER update_user_task_updated_on BEFORE UPDATE ON %s FOR EACH ROW EXECUTE PROCEDURE update_updated_on_user_task();`, table)
 
 	_, err := db.Exec(query)
 	if err != nil {
-		log.Printf("Failed to create trigger update_user_task_updated_on on %s due to %s", table, err)
+		log.Printf("Failed to create trigger update_user_task_updated_on on %s due to %s\n", table, err)
 		os.Exit(1)
 	}
-	log.Printf("Created trigger update_user_task_updated_on on %s", table)
+	log.Printf("Created trigger update_user_task_updated_on on %s\n", table)
 }
 func (s *PostgresStore) getConnectionString() string {
 	db_user := os.Getenv("DB_USER")
