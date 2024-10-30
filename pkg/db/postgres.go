@@ -110,10 +110,10 @@ func (s *PostgresStore) seedUsers() {
 		}
 		fmt.Printf("Inserting %d", i)
 	}
-
 }
 
 func (s *PostgresStore) Init() {
+	CreateRoleTable(s.DB)
 	CreateUserTable(s.DB)
 	CreateProfileTable(s.DB)
 	log.Println("successfully created all tables")
@@ -124,6 +124,26 @@ func (s *PostgresStore) Init() {
 	CreateUpdatedAtTriggerOnUsers(s.DB)
 	CreateUpdatedAtTriggerOnProfiles(s.DB)
 	log.Println("successfully created all triggers")
+}
+
+func CreateRoleTable(db *sql.DB) {
+	log.Println("Creating roles table")
+	query := `CREATE TABLE IF NOT EXISTS roles (
+	id serial primary key,
+	code varchar(10) NOT NULL,
+	Name varchar(20) NOT NULL,
+	Description varchar(120) NOT NULL,
+	created_at timestamp DEFAULT NOW() NOT NULL,
+	updated_at timestamp DEFAULT NOW() NOT NULL
+	)`
+
+	_, err := db.Exec(query)
+	if err != nil {
+		log.Printf("Failed to create roles table %s", err)
+		os.Exit(1)
+	}
+	log.Println("Created roles table")
+
 }
 
 func CreateUserTable(db *sql.DB) {
