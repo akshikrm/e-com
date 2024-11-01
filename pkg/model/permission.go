@@ -8,15 +8,6 @@ import (
 	"time"
 )
 
-// There will be a table which connects users to groups with  group_id and user_id columns
-//
-// type Group struct {
-// 	ID          int
-// 	Name        string
-// 	Description string
-// 	Roles       int // this will be accomplished by a table which connects groups and roles
-// }
-
 type Permission struct {
 	ID           int       `json:"id"`
 	RoleCode     int       `json:"role_code"`
