@@ -20,7 +20,7 @@ type PostgresStore struct {
 
 const (
 	CREATE_ROLE       = "CREATE TABLE IF NOT EXISTS roles (id SERIAL PRIMARY KEY, code varchar(10) NOT NULL, Name varchar(20) NOT NULL, Description varchar(120) NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL)"
-	CREATE_GROUP      = "CREATE TABLE IF NOT EXISTS groups (id SERIAL PRIMARY KEY, name varchar(20) NOT NULL, description varchar(120) NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL)"
+	CREATE_GROUP      = "CREATE TABLE IF NOT EXISTS groups (id SERIAL PRIMARY KEY, name varchar(20) NOT NULL, description varchar(120) NOT NULL, role_id INT NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL)"
 	CREATE_RESOURCE   = "CREATE TABLE IF NOT EXISTS resources (id SERIAL PRIMARY KEY, name varchar(10) NOT NULL, code varchar(10) NOT NULL, description varchar(120) NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL)"
 	CREATE_PERMISSION = "CREATE TABLE IF NOT EXISTS permissions (id SERIAL PRIMARY KEY, role_code INT NOT NULL, resource_code INT NOT NULL, r BOOLEAN DEFAULT false NOT NULL, w BOOLEAN DEFAULT false NOT NULL, u BOOLEAN DEFAULT false NOT NULL, d BOOLEAN DEFAULT false NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL)"
 	CREATE_USERS      = "CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, password varchar NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL)"
@@ -158,6 +158,7 @@ func (s *PostgresStore) seedGroups() {
 	groupService := services.NewGroupService(s.DB)
 	group := types.CreateNewGroup{
 		Name:        "Super User",
+		RoleID:      1,
 		Description: "Group assigned to admin",
 	}
 	err := groupService.Create(&group)

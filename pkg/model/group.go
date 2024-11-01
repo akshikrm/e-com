@@ -10,6 +10,7 @@ import (
 
 type Group struct {
 	ID          int       `json:"id"`
+	RoleID      int       `json:"role_id"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	CreatedAt   time.Time `json:"created_at"`
@@ -50,10 +51,11 @@ func (r *GroupModel) GetOne(id int) (*Group, error) {
 }
 
 func (r *GroupModel) Create(newGroup *types.CreateNewGroup) error {
-	query := "INSERT INTO groups(name, description) VALUES ($1, $2)"
+	query := "INSERT INTO groups(name, description, role_id) VALUES ($1, $2, $3)"
 	if _, err := r.store.Exec(query,
 		newGroup.Name,
 		newGroup.Description,
+		newGroup.RoleID,
 	); err != nil {
 		return utils.ServerError
 	}
@@ -62,10 +64,11 @@ func (r *GroupModel) Create(newGroup *types.CreateNewGroup) error {
 }
 
 func (r *GroupModel) Update(id int, updatedGroup *types.CreateNewGroup) (*Group, error) {
-	query := `UPDATE roles SET name=$1, description=$2 returning *`
+	query := `UPDATE roles SET name=$1, description=$2 role_id=$3 returning *`
 	row := r.store.QueryRow(query,
 		updatedGroup.Name,
 		updatedGroup.Description,
+		updatedGroup.RoleID,
 	)
 
 	role, err := scanGroupRow(row)
@@ -97,6 +100,9 @@ func scanGroupRows(rows *sql.Rows) ([]*Group, error) {
 		group := &Group{}
 		err := rows.Scan(
 			&group.ID,
+			&group.RoleID,
+			&group.Name,
+			&group.Description,
 			&group.CreatedAt,
 			&group.UpdatedAt,
 		)
@@ -111,11 +117,14 @@ func scanGroupRows(rows *sql.Rows) ([]*Group, error) {
 }
 
 func scanGroupRow(row *sql.Row) (*Group, error) {
-	groups := Group{}
+	group := Group{}
 	err := row.Scan(
-		&groups.ID,
-		&groups.CreatedAt,
-		&groups.UpdatedAt,
+		&group.ID,
+		&group.RoleID,
+		&group.Name,
+		&group.Description,
+		&group.CreatedAt,
+		&group.UpdatedAt,
 	)
 
 	if err == sql.ErrNoRows {
@@ -126,7 +135,7 @@ func scanGroupRow(row *sql.Row) (*Group, error) {
 		return nil, utils.ServerError
 	}
 
-	return &groups, nil
+	return &group, nil
 
 }
 
