@@ -11,6 +11,9 @@ init-db: build
 seed-users: build
 	@./dist --seed-users
 
+seed-groups: build
+	@./dist --seed-groups
+
 seed-roles: build
 	@./dist --seed-roles
 
