@@ -5,12 +5,27 @@ run: build
 	@clear
 	@./dist
 
-initdb: build
-	@./dist --initdb 
+init-db: build
+	@./dist --init-db 
 
 seed-users: build
 	@./dist --seed-users
 
+seed-groups: build
+	@./dist --seed-groups
+
+seed-roles: build
+	@./dist --seed-roles
+
+seed-resources: build
+	@./dist --seed-resources
+
+seed-permission: build
+		@./dist --seed-permission
+
+
 nuke-db: build
 	@./dist --nuke-db
 
+refresh-db: build 
+	@./dist --refresh-db
