@@ -7,6 +7,6 @@ type CreateNewGroup struct {
 }
 
 type CreateNewGroupPermission struct {
-	GroupID      int    `json:"group_id"`
-	PermissionID string `json:"permission_id"`
+	GroupID      int `json:"group_id"`
+	PermissionID int `json:"permission_id"`
 }

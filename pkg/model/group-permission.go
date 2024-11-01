@@ -4,17 +4,17 @@ import (
 	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
 	"database/sql"
+	"fmt"
 	"log"
 	"time"
 )
 
 type GroupPermission struct {
-	ID          int       `json:"id"`
-	RoleID      int       `json:"role_id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID           int       `json:"id"`
+	GroupID      int       `json:"group_id"`
+	PermissionID int       `json:"permission_id"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }
 
 type GroupPermissionModel struct {
@@ -56,6 +56,7 @@ func (r *GroupPermissionModel) Create(newGroupPermission *types.CreateNewGroupPe
 		newGroupPermission.GroupID,
 		newGroupPermission.PermissionID,
 	); err != nil {
+		fmt.Println(err)
 		return utils.ServerError
 	}
 
@@ -98,9 +99,8 @@ func scanGroupPermissionRows(rows *sql.Rows) ([]*GroupPermission, error) {
 		groupPermission := &GroupPermission{}
 		err := rows.Scan(
 			&groupPermission.ID,
-			&groupPermission.RoleID,
-			&groupPermission.Name,
-			&groupPermission.Description,
+			&groupPermission.GroupID,
+			&groupPermission.PermissionID,
 			&groupPermission.CreatedAt,
 			&groupPermission.UpdatedAt,
 		)
@@ -118,9 +118,8 @@ func scanGroupPermissionRow(row *sql.Row) (*GroupPermission, error) {
 	groupPermission := GroupPermission{}
 	err := row.Scan(
 		&groupPermission.ID,
-		&groupPermission.RoleID,
-		&groupPermission.Name,
-		&groupPermission.Description,
+		&groupPermission.GroupID,
+		&groupPermission.PermissionID,
 		&groupPermission.CreatedAt,
 		&groupPermission.UpdatedAt,
 	)
