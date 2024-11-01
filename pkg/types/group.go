@@ -5,3 +5,8 @@ type CreateNewGroup struct {
 	RoleID      int    `json:"role_id"`
 	Description string `json:"description"`
 }
+
+type CreateNewGroupPermission struct {
+	GroupID      int    `json:"group_id"`
+	PermissionID string `json:"permission_id"`
+}
