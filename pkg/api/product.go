@@ -18,7 +18,7 @@ type ProductApi struct {
 	ProductService ProductServicer
 }
 
-func (u *ProductApi) GetAll(w http.ResponseWriter, r *http.Request) error {
+func (u *ProductApi) GetAll(_ int, w http.ResponseWriter, r *http.Request) error {
 	users, err := u.ProductService.Get()
 	if err != nil {
 		return err
@@ -26,7 +26,7 @@ func (u *ProductApi) GetAll(w http.ResponseWriter, r *http.Request) error {
 	return writeJson(w, http.StatusOK, users)
 }
 
-func (u *ProductApi) Create(w http.ResponseWriter, r *http.Request) error {
+func (u *ProductApi) Create(_ int, w http.ResponseWriter, r *http.Request) error {
 	a := &types.CreateNewProduct{}
 	if err := json.NewDecoder(r.Body).Decode(a); err != nil {
 		if err == io.EOF {

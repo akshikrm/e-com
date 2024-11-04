@@ -28,7 +28,7 @@ func (s *APIServer) Run() {
 	})
 
 	RegisterUserApi(router, s.Store)
-	RegisterProductApi(router, s.Store)
+	// RegisterProductApi(router, s.Store)
 
 	wrappedRouter := NewLogger(router)
 	log.Printf("🚀 Server started on port %s", s.Port)
@@ -39,20 +39,21 @@ func RegisterUserApi(r *http.ServeMux, store Database) {
 	userService := services.NewUserService(store.(*db.PostgresStore).DB)
 	userApi := api.NewUserApi(userService)
 
+	IsAdmin := api.IsAdmin(userService)
 	r.HandleFunc("POST /users", api.RouteHandler(userApi.Create))
 	r.HandleFunc("POST /login", api.RouteHandler(userApi.Login))
 
 	r.HandleFunc("GET /profile", api.RouteHandler(api.IsAuthenticated(userApi.GetProfile)))
 	r.HandleFunc("PUT /profile", api.RouteHandler(api.IsAuthenticated(userApi.UpdateProfile)))
 
-	r.HandleFunc("GET /users", api.RouteHandler(api.IsAdmin(userService, userApi.GetAll)))
-	r.HandleFunc("GET /users/{id}", api.RouteHandler(api.IsAdmin(userService, userApi.GetOne)))
+	r.HandleFunc("GET /users", api.RouteHandler(IsAdmin(userApi.GetAll)))
+	r.HandleFunc("GET /users/{id}", api.RouteHandler(IsAdmin(userApi.GetOne)))
+
+	productService := services.NewProductService(store.(*db.PostgresStore).DB)
+	productApi := api.NewProductApi(productService)
+	r.HandleFunc("POST /products", api.RouteHandler(IsAdmin(productApi.Create)))
+	r.HandleFunc("GET /products", api.RouteHandler(IsAdmin(productApi.GetAll)))
+
 }
 
-func RegisterProductApi(r *http.ServeMux, store Database) {
-	userService := services.NewProductService(store.(*db.PostgresStore).DB)
-	userApi := api.NewProductApi(userService)
-
-	r.HandleFunc("POST /products", api.RouteHandler(userApi.Create))
-	r.HandleFunc("GET /products", api.RouteHandler(userApi.GetAll))
-}
+// func RegisterProductApi(r *http.ServeMux, store Database) {}

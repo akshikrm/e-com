@@ -13,6 +13,7 @@ import (
 
 type apiFunc func(http.ResponseWriter, *http.Request) error
 type apiFuncWithContext func(int, http.ResponseWriter, *http.Request) error
+type AdminWrapperFunc func(apiFuncWithContext) apiFunc
 
 type ApiError struct {
 	Error string `json:"error"`
@@ -22,18 +23,21 @@ type ApiResponse struct {
 	Data any `json:"data"`
 }
 
-func IsAdmin(userService UserServicer, f apiFuncWithContext) apiFunc {
-	return IsAuthenticated(func(id int, w http.ResponseWriter, r *http.Request) error {
-		user, err := userService.GetOne(id)
-		if err != nil {
+func IsAdmin(userService UserServicer) AdminWrapperFunc {
+	return func(f apiFuncWithContext) apiFunc {
+		validateAdmin := func(id int, w http.ResponseWriter, r *http.Request) error {
+			user, err := userService.GetOne(id)
+			if err != nil {
+				return accessDenied(w)
+			}
+			if user.Role == "admin" {
+				return f(id, w, r)
+			}
 			return accessDenied(w)
 		}
-		if user.Role == "admin" {
-			return f(id, w, r)
-		}
 
-		return accessDenied(w)
-	})
+		return IsAuthenticated(validateAdmin)
+	}
 }
 
 func IsAuthenticated(f apiFuncWithContext) apiFunc {
