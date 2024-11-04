@@ -66,7 +66,7 @@ func (u *UserApi) GetAll(id int, w http.ResponseWriter, r *http.Request) error {
 	return writeJson(w, http.StatusOK, users)
 }
 
-func (u *UserApi) GetOne(w http.ResponseWriter, r *http.Request) error {
+func (u *UserApi) GetOne(_ int, w http.ResponseWriter, r *http.Request) error {
 	id, err := parseId(r.PathValue("id"))
 	if err != nil {
 		return fmt.Errorf("invalid id")
