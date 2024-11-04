@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/golang-jwt/jwt/v5"
 	"net/http"
 	"strconv"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type apiFunc func(http.ResponseWriter, *http.Request) error
@@ -21,6 +22,20 @@ type ApiResponse struct {
 	Data any `json:"data"`
 }
 
+func IsAdmin(userService UserServicer, f apiFuncWithContext) apiFunc {
+	return IsAuthenticated(func(id int, w http.ResponseWriter, r *http.Request) error {
+		user, err := userService.GetOne(id)
+		if err != nil {
+			return accessDenied(w)
+		}
+		if user.Role == "admin" {
+			return f(id, w, r)
+		}
+
+		return accessDenied(w)
+	})
+}
+
 func IsAuthenticated(f apiFuncWithContext) apiFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		authtoken := r.Header.Get("Authorization")
@@ -28,7 +43,6 @@ func IsAuthenticated(f apiFuncWithContext) apiFunc {
 		if err != nil {
 			return accessDenied(w)
 		}
-
 		if !token.Valid {
 			return accessDenied(w)
 		}
@@ -36,11 +50,8 @@ func IsAuthenticated(f apiFuncWithContext) apiFunc {
 			id := int(claims["sub"].(float64))
 			return f(id, w, r)
 		}
-
 		return accessDenied(w)
-
 	}
-
 }
 
 func accessDenied(w http.ResponseWriter) error {

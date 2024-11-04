@@ -43,7 +43,6 @@ func (u *UserApi) GetProfile(id int, w http.ResponseWriter, r *http.Request) err
 		return err
 	}
 	return writeJson(w, http.StatusOK, userProfile)
-
 }
 
 func (u *UserApi) UpdateProfile(userId int, w http.ResponseWriter, r *http.Request) error {
@@ -51,21 +50,19 @@ func (u *UserApi) UpdateProfile(userId int, w http.ResponseWriter, r *http.Reque
 	if err := json.NewDecoder(r.Body).Decode(a); err != nil {
 		return err
 	}
-
 	user, err := u.UserService.Update(userId, a)
 	if err != nil {
 		return err
 	}
-
 	return writeJson(w, http.StatusOK, user)
 }
 
-func (u *UserApi) GetAll(w http.ResponseWriter, r *http.Request) error {
+func (u *UserApi) GetAll(id int, w http.ResponseWriter, r *http.Request) error {
+	fmt.Println("getting", id)
 	users, err := u.UserService.Get()
 	if err != nil {
 		return err
 	}
-
 	return writeJson(w, http.StatusOK, users)
 }
 
@@ -74,16 +71,13 @@ func (u *UserApi) GetOne(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return fmt.Errorf("invalid id")
 	}
-
 	foundUser, err := u.UserService.GetOne(id)
-
 	if err != nil {
 		if err == utils.NotFound {
 			return writeError(w, http.StatusNotFound, fmt.Errorf("user not found"))
 		}
 		return err
 	}
-
 	return writeJson(w, http.StatusOK, foundUser)
 }
 
@@ -95,7 +89,6 @@ func (u *UserApi) Login(w http.ResponseWriter, r *http.Request) error {
 		}
 		return err
 	}
-
 	token, err := u.UserService.Login(&a)
 	if err != nil {
 		if err == utils.NotFound {
@@ -103,7 +96,6 @@ func (u *UserApi) Login(w http.ResponseWriter, r *http.Request) error {
 		}
 		return err
 	}
-
 	return writeJson(w, http.StatusOK, token)
 }
 
@@ -115,12 +107,10 @@ func (u *UserApi) Create(w http.ResponseWriter, r *http.Request) error {
 		}
 		return err
 	}
-
 	token, err := u.UserService.Create(*a)
 	if err != nil {
 		return err
 	}
-
 	return writeJson(w, http.StatusCreated, token)
 }
 
@@ -129,14 +119,11 @@ func (u *UserApi) Update(w http.ResponseWriter, r *http.Request) error {
 	if err := json.NewDecoder(r.Body).Decode(&a); err != nil {
 		return err
 	}
-
 	id, err := parseId(r.PathValue("id"))
-
 	user, err := u.UserService.Update(id, &a)
 	if err != nil {
 		return err
 	}
-
 	return writeJson(w, http.StatusOK, user)
 }
 
@@ -145,14 +132,12 @@ func (u *UserApi) Delete(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return fmt.Errorf("invalid id")
 	}
-
 	if err := u.UserService.Delete(id); err != nil {
 		if err == utils.NotFound {
 			return writeError(w, http.StatusNotFound, err)
 		}
 		return err
 	}
-
 	return writeJson(w, http.StatusOK, "deleted successfully")
 }
 

@@ -14,6 +14,7 @@ type User struct {
 	Password  string    `json:"-"`
 	Role      string    `json:"role_code"`
 	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type UserModel struct {
@@ -21,7 +22,7 @@ type UserModel struct {
 }
 
 func (m *UserModel) Get() ([]*User, error) {
-	query := `select * from users;`
+	query := `select * from users where role_code != 'admin';`
 
 	rows, err := m.DB.Query(query)
 	if err != nil {
@@ -148,7 +149,9 @@ func ScanRows(rows *sql.Rows) (*User, error) {
 	err := rows.Scan(
 		&user.ID,
 		&user.Password,
+		&user.Role,
 		&user.CreatedAt,
+		&user.UpdatedAt,
 	)
 
 	if err != nil {
@@ -163,7 +166,9 @@ func ScanRow(row *sql.Row) (*User, error) {
 	err := row.Scan(
 		&user.ID,
 		&user.Password,
+		&user.Role,
 		&user.CreatedAt,
+		&user.UpdatedAt,
 	)
 
 	return user, err
