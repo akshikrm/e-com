@@ -28,6 +28,8 @@ func (s *APIServer) Run() {
 	})
 
 	RegisterUserApi(router, s.Store)
+	RegisterProductApi(router, s.Store)
+
 	wrappedRouter := NewLogger(router)
 	log.Printf("🚀 Server started on port %s", s.Port)
 	log.Fatal(http.ListenAndServe(s.Port, wrappedRouter))
@@ -45,4 +47,12 @@ func RegisterUserApi(r *http.ServeMux, store Database) {
 
 	r.HandleFunc("GET /users", api.RouteHandler(api.IsAdmin(userService, userApi.GetAll)))
 	r.HandleFunc("GET /users/{id}", api.RouteHandler(api.IsAdmin(userService, userApi.GetOne)))
+}
+
+func RegisterProductApi(r *http.ServeMux, store Database) {
+	userService := services.NewProductService(store.(*db.PostgresStore).DB)
+	userApi := api.NewProductApi(userService)
+
+	r.HandleFunc("POST /products", api.RouteHandler(userApi.Create))
+	r.HandleFunc("GET /products", api.RouteHandler(userApi.GetAll))
 }

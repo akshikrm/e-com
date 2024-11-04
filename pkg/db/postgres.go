@@ -24,6 +24,7 @@ const (
 	CREATE_PERMISSION = "CREATE TABLE IF NOT EXISTS permissions (id SERIAL PRIMARY KEY, role_code VARCHAR(10) NOT NULL, resource_code VARCHAR(10) NOT NULL, r BOOLEAN DEFAULT false NOT NULL, w BOOLEAN DEFAULT false NOT NULL, u BOOLEAN DEFAULT false NOT NULL, d BOOLEAN DEFAULT false NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL, CONSTRAINT fk_role FOREIGN KEY(role_code) REFERENCES roles(code), CONSTRAINT fk_resource FOREIGN KEY(role_code) REFERENCES resources(code))"
 	CREATE_USERS      = "CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, password VARCHAR NOT NULL, role_code VARCHAR(10) DEFAULT user NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL, CONSTRAINT fk_role FOREIGN KEY(role_code) REFERENCES roles(code))"
 	CREATE_PROFILES   = "CREATE TABLE IF NOT EXISTS profiles (id SERIAL PRIMARY KEY, user_id int UNIQUE, first_name VARCHAR(50) DEFAULT '' NOT NULL, last_name VARCHAR(50) DEFAULT '' NOT NULL, email VARCHAR(50) UNIQUE DEFAULT '' NOT NULL, pincode VARCHAR(10) DEFAULT '' NOT NULL, address_one VARCHAR(100) DEFAULT '' NOT NULL, address_two VARCHAR(100) DEFAULT '' NOT NULL, phone_number VARCHAR(15) DEFAULT '' NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL, CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id))"
+	CREATE_PRODUCT    = "CREATE TABLE IF NOT EXISTS products (id SERIAL PRIMARY KEY, name VARCHAR(30), slug VARCHAR(30), price INTEGER NOT NULL DEFAULT 0, image VARCHAR(100),  description VARCHAR(300) NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL)"
 )
 
 func (s *PostgresStore) Connect() error {
@@ -117,12 +118,14 @@ func (s *PostgresStore) NukeDB() {
 	dropTrigger(s.DB, "update_user_task_updated_on", "profiles")
 	dropTrigger(s.DB, "update_user_task_updated_on", "resources")
 	dropTrigger(s.DB, "update_user_task_updated_on", "permissions")
+	dropTrigger(s.DB, "update_user_task_updated_on", "products")
 
 	dropTables(s.DB, "permissions")
 	dropTables(s.DB, "resources")
 	dropTables(s.DB, "profiles")
 	dropTables(s.DB, "users")
 	dropTables(s.DB, "roles")
+	dropTables(s.DB, "products")
 	dropFunction(s.DB, "update_updated_on_user_task")
 }
 
@@ -219,6 +222,7 @@ func (s *PostgresStore) Init() {
 	CreateTable(s.DB, CREATE_PERMISSION, "permissions")
 	CreateTable(s.DB, CREATE_USERS, "users")
 	CreateTable(s.DB, CREATE_PROFILES, "profiles")
+	CreateTable(s.DB, CREATE_PRODUCT, "products")
 	log.Println("successfully created all tables")
 
 	CreateUpdatedAtFunction(s.DB)
@@ -229,6 +233,7 @@ func (s *PostgresStore) Init() {
 	CreateUpdatedAtTrigger(s.DB, "permissions")
 	CreateUpdatedAtTrigger(s.DB, "roles")
 	CreateUpdatedAtTrigger(s.DB, "resources")
+	CreateUpdatedAtTrigger(s.DB, "products")
 	log.Println("successfully created all triggers")
 
 	adminRole := types.CreateRoleRequest{
