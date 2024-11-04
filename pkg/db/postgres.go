@@ -19,13 +19,11 @@ type PostgresStore struct {
 }
 
 const (
-	CREATE_ROLE             = "CREATE TABLE IF NOT EXISTS roles (id SERIAL PRIMARY KEY, code varchar(10) NOT NULL, Name varchar(20) NOT NULL, Description varchar(120) NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL)"
-	CREATE_GROUP            = "CREATE TABLE IF NOT EXISTS groups (id SERIAL PRIMARY KEY, name varchar(20) NOT NULL, description varchar(120) NOT NULL, role_id INT NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL)"
-	CREATE_RESOURCE         = "CREATE TABLE IF NOT EXISTS resources (id SERIAL PRIMARY KEY, name varchar(10) NOT NULL, code varchar(10) NOT NULL, description varchar(120) NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL)"
-	CREATE_PERMISSION       = "CREATE TABLE IF NOT EXISTS permissions (id SERIAL PRIMARY KEY, role_code INT NOT NULL, resource_code INT NOT NULL, r BOOLEAN DEFAULT false NOT NULL, w BOOLEAN DEFAULT false NOT NULL, u BOOLEAN DEFAULT false NOT NULL, d BOOLEAN DEFAULT false NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL)"
-	CREATE_GROUP_PERMISSION = "CREATE TABLE IF NOT EXISTS group_permissions (id SERIAL PRIMARY KEY, group_id INT NOT NULL, permission_id INT NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL)"
-	CREATE_USERS            = "CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, password varchar NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL)"
-	CREATE_PROFILES         = "CREATE TABLE IF NOT EXISTS profiles (id SERIAL PRIMARY KEY, user_id int UNIQUE, first_name varchar(50) DEFAULT '' NOT NULL, last_name varchar(50) DEFAULT '' NOT NULL, email varchar(50) UNIQUE DEFAULT '' NOT NULL, pincode varchar(10) DEFAULT '' NOT NULL, address_one varchar(100) DEFAULT '' NOT NULL, address_two varchar(100) DEFAULT '' NOT NULL, phone_number varchar(15) DEFAULT '' NOT NULL, created_at timestamp DEFAULT NOW() NOT NULL, updated_at timestamp DEFAULT NOW() NOT NULL, CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id))"
+	CREATE_ROLE       = "CREATE TABLE IF NOT EXISTS roles (id SERIAL PRIMARY KEY, name VARCHAR(20) NOT NULL, code VARCHAR(10) UNIQUE NOT NULL, description VARCHAR(120) NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL)"
+	CREATE_RESOURCE   = "CREATE TABLE IF NOT EXISTS resources (id SERIAL PRIMARY KEY, name VARCHAR(10) NOT NULL, code VARCHAR(10) UNIQUE NOT NULL, description VARCHAR(120) NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL)"
+	CREATE_PERMISSION = "CREATE TABLE IF NOT EXISTS permissions (id SERIAL PRIMARY KEY, role_code VARCHAR(10) NOT NULL, resource_code VARCHAR(10) NOT NULL, r BOOLEAN DEFAULT false NOT NULL, w BOOLEAN DEFAULT false NOT NULL, u BOOLEAN DEFAULT false NOT NULL, d BOOLEAN DEFAULT false NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL, CONSTRAINT fk_role FOREIGN KEY(role_code) REFERENCES roles(code), CONSTRAINT fk_resource FOREIGN KEY(role_code) REFERENCES resources(code))"
+	CREATE_USERS      = "CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, password VARCHAR NOT NULL, role_code VARCHAR(10) DEFAULT user NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL, CONSTRAINT fk_role FOREIGN KEY(role_code) REFERENCES roles(code))"
+	CREATE_PROFILES   = "CREATE TABLE IF NOT EXISTS profiles (id SERIAL PRIMARY KEY, user_id int UNIQUE, first_name VARCHAR(50) DEFAULT '' NOT NULL, last_name VARCHAR(50) DEFAULT '' NOT NULL, email VARCHAR(50) UNIQUE DEFAULT '' NOT NULL, pincode VARCHAR(10) DEFAULT '' NOT NULL, address_one VARCHAR(100) DEFAULT '' NOT NULL, address_two VARCHAR(100) DEFAULT '' NOT NULL, phone_number VARCHAR(15) DEFAULT '' NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL, CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id))"
 )
 
 func (s *PostgresStore) Connect() error {
@@ -44,9 +42,6 @@ func (s *PostgresStore) Connect() error {
 
 	initdb := flag.Bool("init-db", false, "initialize db if true")
 	seedUsers := flag.Bool("seed-users", false, "seed db if true")
-	seedRoles := flag.Bool("seed-roles", false, "seed db if true")
-	seedGroups := flag.Bool("seed-groups", false, "seed db if true")
-	seedGroupsPermission := flag.Bool("seed-groups-permission", false, "seed db if true")
 	seedResources := flag.Bool("seed-resources", false, "seed db if true")
 	seedPermission := flag.Bool("seed-permission", false, "seed db if true")
 	nukeDb := flag.Bool("nuke-db", false, "clear everything in the database")
@@ -55,21 +50,6 @@ func (s *PostgresStore) Connect() error {
 	flag.Parse()
 	if *initdb {
 		s.Init()
-		os.Exit(0)
-	}
-
-	if *seedRoles {
-		s.seedRoles()
-		os.Exit(0)
-	}
-
-	if *seedGroups {
-		s.seedGroups()
-		os.Exit(0)
-	}
-
-	if *seedGroupsPermission {
-		s.seedGroupsPermission()
 		os.Exit(0)
 	}
 
@@ -90,9 +70,6 @@ func (s *PostgresStore) Connect() error {
 	if *refreshDb {
 		s.NukeDB()
 		s.Init()
-		s.seedRoles()
-		s.seedGroups()
-		s.seedGroupsPermission()
 		s.seedResources()
 		s.seedPermission()
 		s.seedUsers()
@@ -138,71 +115,33 @@ func (s *PostgresStore) NukeDB() {
 	dropTrigger(s.DB, "update_user_task_updated_on", "roles")
 	dropTrigger(s.DB, "update_user_task_updated_on", "users")
 	dropTrigger(s.DB, "update_user_task_updated_on", "profiles")
-	dropTrigger(s.DB, "update_user_task_updated_on", "groups")
 	dropTrigger(s.DB, "update_user_task_updated_on", "resources")
 	dropTrigger(s.DB, "update_user_task_updated_on", "permissions")
-	dropTrigger(s.DB, "update_user_task_updated_on", "group_permissions")
 
-	dropTables(s.DB, "roles")
+	dropTables(s.DB, "permissions")
 	dropTables(s.DB, "resources")
 	dropTables(s.DB, "profiles")
-	dropTables(s.DB, "groups")
 	dropTables(s.DB, "users")
-	dropTables(s.DB, "permissions")
-	dropTables(s.DB, "group_permissions")
+	dropTables(s.DB, "roles")
 	dropFunction(s.DB, "update_updated_on_user_task")
 }
 
-func (s *PostgresStore) seedRoles() {
+func (s *PostgresStore) seedRoles(role *types.CreateRoleRequest) {
 	log.Println("seeding roles")
 	roleService := services.NewRoleService(s.DB)
-	role := types.CreateRoleRequest{
-		Name:        "Admin",
-		Code:        "admin",
-		Description: "Role assigned to admin",
-	}
-	err := roleService.Create(&role)
+	err := roleService.Create(role)
 	if err != nil {
 		log.Printf("Failed to seed role %s due to %s\n", role.Name, err)
 	}
 	log.Printf("Successfully seed role %s\n", role.Name)
 }
 
-func (s *PostgresStore) seedGroupsPermission() {
-	log.Println("seeding groups permissions")
-	groupPermissionService := services.NewGroupPermissionService(s.DB)
-	groupPermission := types.CreateNewGroupPermission{
-		GroupID:      1,
-		PermissionID: 1,
-	}
-	err := groupPermissionService.Create(&groupPermission)
-	if err != nil {
-		log.Printf("Failed to seed group  permissions due to %s\n", err)
-	}
-	log.Println("Successfully seed group")
-}
-
-func (s *PostgresStore) seedGroups() {
-	log.Println("seeding groups")
-	groupService := services.NewGroupService(s.DB)
-	group := types.CreateNewGroup{
-		Name:        "Super User",
-		RoleID:      1,
-		Description: "Group assigned to admin",
-	}
-	err := groupService.Create(&group)
-	if err != nil {
-		log.Printf("Failed to seed group %s due to %s\n", group.Name, err)
-	}
-	log.Printf("Successfully seed group %s\n", group.Name)
-}
-
 func (s *PostgresStore) seedResources() {
 	log.Println("seeding Resource")
 	resourceService := services.NewResourceService(s.DB)
 	resource := types.CreateResourceRequest{
-		Name:        "Product",
-		Code:        "product",
+		Name:        "User",
+		Code:        "user",
 		Description: "resource assigned to admin",
 	}
 	err := resourceService.Create(&resource)
@@ -216,15 +155,34 @@ func (s *PostgresStore) seedPermission() {
 	log.Println("seeding permission")
 	permissionService := services.NewPermissionService(s.DB)
 	permission := types.CreateNewPermission{
-		RoleCode:     1,
-		ResourceCode: 1,
+		RoleCode:     "admin",
+		ResourceCode: "user",
 		R:            true,
+		U:            true,
+		D:            true,
 	}
 	err := permissionService.Create(&permission)
 	if err != nil {
 		log.Printf("Failed to seed permission due to %s\n", err)
 	}
 	log.Println("Successfully seed permission")
+}
+
+func (s *PostgresStore) seedAdmin() {
+	log.Println("seeding admin")
+	userService := services.NewUserService(s.DB)
+	user := types.CreateUserRequest{
+		FirstName: "Admin",
+		LastName:  "Me",
+		Email:     "admin@me.com",
+		Password:  "root",
+		Role:      "admin",
+	}
+	_, err := userService.Create(user)
+	if err != nil {
+		log.Printf("Failed to seed admin due to %s\n", err)
+	}
+	log.Println("Successfully seed admin")
 }
 
 func (s *PostgresStore) seedUsers() {
@@ -259,8 +217,6 @@ func (s *PostgresStore) Init() {
 	CreateTable(s.DB, CREATE_ROLE, "roles")
 	CreateTable(s.DB, CREATE_RESOURCE, "resources")
 	CreateTable(s.DB, CREATE_PERMISSION, "permissions")
-	CreateTable(s.DB, CREATE_GROUP, "groups")
-	CreateTable(s.DB, CREATE_GROUP_PERMISSION, "group_permissions")
 	CreateTable(s.DB, CREATE_USERS, "users")
 	CreateTable(s.DB, CREATE_PROFILES, "profiles")
 	log.Println("successfully created all tables")
@@ -271,11 +227,25 @@ func (s *PostgresStore) Init() {
 	CreateUpdatedAtTrigger(s.DB, "users")
 	CreateUpdatedAtTrigger(s.DB, "profiles")
 	CreateUpdatedAtTrigger(s.DB, "permissions")
-	CreateUpdatedAtTrigger(s.DB, "groups")
-	CreateUpdatedAtTrigger(s.DB, "group_permissions")
 	CreateUpdatedAtTrigger(s.DB, "roles")
 	CreateUpdatedAtTrigger(s.DB, "resources")
 	log.Println("successfully created all triggers")
+
+	adminRole := types.CreateRoleRequest{
+		Name:        "Admin",
+		Code:        "admin",
+		Description: "Role assigned to admin",
+	}
+	s.seedRoles(&adminRole)
+
+	userRole := types.CreateRoleRequest{
+		Name:        "User",
+		Code:        "user",
+		Description: "Role assigned to user",
+	}
+	s.seedRoles(&userRole)
+	s.seedAdmin()
+
 }
 
 func CreateTable(store *sql.DB, query string, table string) {
@@ -311,6 +281,7 @@ func CreateUpdatedAtTrigger(db *sql.DB, table string) {
 	}
 	log.Printf("Created trigger update_user_task_updated_on on %s\n", table)
 }
+
 func (s *PostgresStore) getConnectionString() string {
 	db_user := os.Getenv("DB_USER")
 	db_name := os.Getenv("DB_NAME")

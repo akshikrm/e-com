@@ -12,6 +12,7 @@ import (
 type User struct {
 	ID        int       `json:"id"`
 	Password  string    `json:"-"`
+	Role      string    `json:"role_code"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -86,14 +87,17 @@ func (m *UserModel) GetUserByEmail(email string) (*User, error) {
 
 func (m *UserModel) Create(user types.CreateUserRequest) (int, error) {
 	query := `insert into 
-	users (password, created_at)
+	users (password, role_code)
 	values($1, $2)
 	returning id
 	`
-
+	role := "user"
+	if user.Role != "" {
+		role = user.Role
+	}
 	row := m.DB.QueryRow(query,
 		user.Password,
-		time.Now().UTC(),
+		role,
 	)
 	log.Printf("Created user %v", user)
 
