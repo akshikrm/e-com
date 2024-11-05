@@ -13,15 +13,10 @@ type MiddleWares struct{ userService UserServicer }
 
 func (m *MiddleWares) IsAdmin(ctx context.Context, f apiFuncWithContext) apiFunc {
 	validateAdmin := func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-		id := ctx.Value("userID")
-		user, err := m.userService.GetOne(id.(int))
-		if err != nil {
+		if role := ctx.Value("role"); role != "admin" {
 			return accessDenied(w)
 		}
-		if user.Role == "admin" {
-			return f(ctx, w, r)
-		}
-		return accessDenied(w)
+		return f(ctx, w, r)
 	}
 	return m.IsAuthenticated(ctx, validateAdmin)
 }
@@ -38,7 +33,12 @@ func (m *MiddleWares) IsAuthenticated(ctx context.Context, f apiFuncWithContext)
 		}
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
 			id := int(claims["sub"].(float64))
+			user, err := m.userService.GetOne(id)
+			if err != nil {
+				return accessDenied(w)
+			}
 			ctx = context.WithValue(ctx, "userID", id)
+			ctx = context.WithValue(ctx, "role", user.Role)
 			return f(ctx, w, r)
 		}
 		return accessDenied(w)
