@@ -12,13 +12,13 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	database := &db.Storage{}
-	database.Connect()
+	store := db.NewStorage()
+	db.Connect(store)
 
 	server := &server.APIServer{
 		Status: "Server is up and running",
 		Port:   ":5234",
-		Store:  database,
+		Store:  store,
 	}
 	server.Run()
 }

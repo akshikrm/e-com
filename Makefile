@@ -1,31 +1,33 @@
 build:
 	@go build -o dist cmd/main.go 
-
+		
 run: build
 	@clear
 	@./dist
 
-init-db: build
-	@./dist --init-db 
+build-seeder:
+	@go build -o seeder seed/main.go 
 
-seed-users: build
-	@./dist --seed-users
+init-db: build-seeder
+	@./seeder --init-db 
 
-seed-groups: build
-	@./dist --seed-groups
+seed-users: build-seeder
+	@./seeder --seed-users
 
-seed-roles: build
-	@./dist --seed-roles
+seed-groups: build-seeder
+	@./seeder --seed-groups
 
-seed-resources: build
-	@./dist --seed-resources
+seed-roles: build-seeder
+	@./seeder --seed-roles
 
-seed-permission: build
-		@./dist --seed-permission
+seed-resources: build-seeder
+	@./seeder --seed-resources
 
+seed-permission: build-seeder
+		@./seeder --seed-permission
 
-nuke-db: build
-	@./dist --nuke-db
+nuke-db: build-seeder
+	@./seeder --nuke-db
 
-refresh-db: build 
-	@./dist --refresh-db
+refresh-db: build-seeder 
+	@./seeder --refresh-db
