@@ -20,6 +20,7 @@ type APIServer struct {
 }
 
 // Create a new server and registers routes to it
+
 func (s *APIServer) Run() {
 	router := http.NewServeMux()
 
@@ -27,33 +28,37 @@ func (s *APIServer) Run() {
 		w.Write([]byte("server is up and running"))
 	})
 
-	RegisterUserApi(router, s.Store)
-	// RegisterProductApi(router, s.Store)
+	s.registerRoutes(router)
 
 	wrappedRouter := NewLogger(router)
 	log.Printf("🚀 Server started on port %s", s.Port)
 	log.Fatal(http.ListenAndServe(s.Port, wrappedRouter))
 }
 
-func RegisterUserApi(r *http.ServeMux, store Database) {
-	userService := services.NewUserService(store.(*db.PostgresStore).DB)
-	userApi := api.NewUserApi(userService)
+func (s *APIServer) registerRoutes(r *http.ServeMux) {
+	// Services
+	userService := services.NewUserService(s.Store.(*db.PostgresStore).DB)
+	productService := services.NewProductService(s.Store.(*db.PostgresStore).DB)
 
+	// Api
+	userApi := api.NewUserApi(userService)
+	productApi := api.NewProductApi(productService)
+
+	// Middle wares
 	IsAdmin := api.IsAdmin(userService)
+
+	// Public Routes
 	r.HandleFunc("POST /users", api.RouteHandler(userApi.Create))
 	r.HandleFunc("POST /login", api.RouteHandler(userApi.Login))
 
+	// Authenticated Routes
 	r.HandleFunc("GET /profile", api.RouteHandler(api.IsAuthenticated(userApi.GetProfile)))
 	r.HandleFunc("PUT /profile", api.RouteHandler(api.IsAuthenticated(userApi.UpdateProfile)))
 
+	// Admin Routes
 	r.HandleFunc("GET /users", api.RouteHandler(IsAdmin(userApi.GetAll)))
 	r.HandleFunc("GET /users/{id}", api.RouteHandler(IsAdmin(userApi.GetOne)))
 
-	productService := services.NewProductService(store.(*db.PostgresStore).DB)
-	productApi := api.NewProductApi(productService)
 	r.HandleFunc("POST /products", api.RouteHandler(IsAdmin(productApi.Create)))
 	r.HandleFunc("GET /products", api.RouteHandler(IsAdmin(productApi.GetAll)))
-
 }
-
-// func RegisterProductApi(r *http.ServeMux, store Database) {}
