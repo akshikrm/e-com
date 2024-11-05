@@ -4,6 +4,7 @@ import (
 	"akshidas/e-com/pkg/api"
 	"akshidas/e-com/pkg/db"
 	"akshidas/e-com/pkg/services"
+	"context"
 	"log"
 	"net/http"
 )
@@ -20,6 +21,7 @@ type APIServer struct {
 }
 
 // Create a new server and registers routes to it
+
 func (s *APIServer) Run() {
 	router := http.NewServeMux()
 
@@ -27,22 +29,41 @@ func (s *APIServer) Run() {
 		w.Write([]byte("server is up and running"))
 	})
 
-	RegisterUserApi(router, s.Store)
+	s.registerRoutes(router)
+
 	wrappedRouter := NewLogger(router)
 	log.Printf("🚀 Server started on port %s", s.Port)
 	log.Fatal(http.ListenAndServe(s.Port, wrappedRouter))
 }
 
-func RegisterUserApi(r *http.ServeMux, store Database) {
-	userService := services.NewUserService(store.(*db.PostgresStore).DB)
-	userApi := api.NewUserApi(userService)
+func (s *APIServer) registerRoutes(r *http.ServeMux) {
+	ctx := context.Background()
+	// Services
+	userService := services.NewUserService(s.Store.(*db.PostgresStore).DB)
+	productService := services.NewProductService(s.Store.(*db.PostgresStore).DB)
 
+	// Api
+	userApi := api.NewUserApi(userService)
+	productApi := api.NewProductApi(productService)
+
+	// Middle wares
+	middlware := api.NewMiddleWare(userService)
+
+	// Public Routes
 	r.HandleFunc("POST /users", api.RouteHandler(userApi.Create))
 	r.HandleFunc("POST /login", api.RouteHandler(userApi.Login))
 
-	r.HandleFunc("GET /profile", api.RouteHandler(api.IsAuthenticated(userApi.GetProfile)))
-	r.HandleFunc("PUT /profile", api.RouteHandler(api.IsAuthenticated(userApi.UpdateProfile)))
+	// Authenticated Routes
+	r.HandleFunc("GET /profile", api.RouteHandler(middlware.IsAuthenticated(ctx, userApi.GetProfile)))
+	r.HandleFunc("PUT /profile", api.RouteHandler(middlware.IsAuthenticated(ctx, userApi.UpdateProfile)))
 
-	r.HandleFunc("GET /users", api.RouteHandler(api.IsAdmin(userService, userApi.GetAll)))
-	r.HandleFunc("GET /users/{id}", api.RouteHandler(api.IsAdmin(userService, userApi.GetOne)))
+	// Admin Routes
+	r.HandleFunc("GET /users", api.RouteHandler(middlware.IsAdmin(ctx, userApi.GetAll)))
+	r.HandleFunc("GET /users/{id}", api.RouteHandler(middlware.IsAdmin(ctx, userApi.GetOne)))
+
+	r.HandleFunc("POST /products", api.RouteHandler(middlware.IsAdmin(ctx, productApi.Create)))
+	r.HandleFunc("GET /products", api.RouteHandler(middlware.IsAdmin(ctx, productApi.GetAll)))
+	r.HandleFunc("GET /products/{id}", api.RouteHandler(middlware.IsAdmin(ctx, productApi.GetOne)))
+	r.HandleFunc("PUT /products/{id}", api.RouteHandler(middlware.IsAdmin(ctx, productApi.Update)))
+	r.HandleFunc("DELETE /products/{id}", api.RouteHandler(middlware.IsAdmin(ctx, productApi.Delete)))
 }
