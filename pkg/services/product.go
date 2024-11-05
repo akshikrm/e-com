@@ -9,7 +9,7 @@ import (
 type ProductModeler interface {
 	GetAll() ([]*model.Product, error)
 	// GetOne(int) (*model.Product, error)
-	Create(*types.CreateNewProduct) (uint, error)
+	Create(*types.CreateNewProduct) (*model.Product, error)
 	// Update(int, *types.CreateProductRequest) (*model.Product, error)
 	// Delete(int) error
 }

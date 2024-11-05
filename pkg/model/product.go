@@ -23,8 +23,8 @@ type ProductModel struct {
 	store *sql.DB
 }
 
-func (p *ProductModel) Create(product *types.CreateNewProduct) (uint, error) {
-	query := `INSERT INTO products(name, slug, price, image, description) VALUES ($1, $2, $3, $4, $5) RETURNING id`
+func (p *ProductModel) Create(product *types.CreateNewProduct) (*Product, error) {
+	query := `INSERT INTO products(name, slug, price, image, description) VALUES ($1, $2, $3, $4, $5) RETURNING *`
 	row := p.store.QueryRow(query,
 		product.Name,
 		product.Slug,
@@ -33,12 +33,15 @@ func (p *ProductModel) Create(product *types.CreateNewProduct) (uint, error) {
 		product.Description,
 	)
 
-	savedProduct := Product{}
-	if err := row.Scan(&savedProduct.ID); err != nil {
-		log.Printf("failed to create new product %s due to %s", product.Name, err)
-		return 0, utils.ServerError
+	savedProduct, err := scanProductRow(row)
+	if err == sql.ErrNoRows {
+		return nil, utils.NotFound
 	}
-	return savedProduct.ID, nil
+	if err != nil {
+		log.Printf("failed to create new product %s due to %s", product.Name, err)
+		return nil, utils.ServerError
+	}
+	return savedProduct, nil
 }
 
 func (p *ProductModel) GetAll() ([]*Product, error) {
@@ -53,18 +56,39 @@ func (p *ProductModel) GetAll() ([]*Product, error) {
 		log.Printf("failed to get all products due to %s", err)
 		return nil, utils.ServerError
 	}
+
+	products, err := scanProductRows(rows)
+	if err != nil {
+		log.Printf("Failed to save product")
+		return nil, utils.ServerError
+	}
+
+	return products, nil
+}
+
+func scanProductRows(rows *sql.Rows) ([]*Product, error) {
 	products := []*Product{}
 	for rows.Next() {
-		product, err := scanProductRows(rows)
+		product := Product{}
+		err := rows.Scan(
+			&product.ID,
+			&product.Name,
+			&product.Slug,
+			&product.Price,
+			&product.Image,
+			&product.Description,
+			&product.CreatedAt,
+			&product.UpdatedAt,
+		)
 		if err != nil {
-			return nil, utils.ServerError
+			return nil, err
 		}
-		products = append(products, product)
+		products = append(products, &product)
 	}
 	return products, nil
 }
 
-func scanProductRows(rows *sql.Rows) (*Product, error) {
+func scanProductRow(rows *sql.Row) (*Product, error) {
 	product := Product{}
 	err := rows.Scan(
 		&product.ID,
@@ -76,12 +100,10 @@ func scanProductRows(rows *sql.Rows) (*Product, error) {
 		&product.CreatedAt,
 		&product.UpdatedAt,
 	)
-
 	if err != nil {
-		log.Printf("scan into product failed due to %s", err)
+		return nil, err
 	}
-
-	return &product, err
+	return &product, nil
 }
 
 func NewProductModel(store *sql.DB) *ProductModel {
