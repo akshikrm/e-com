@@ -3,7 +3,6 @@ package services
 import (
 	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/types"
-	"database/sql"
 )
 
 type ProductModeler interface {
@@ -39,8 +38,7 @@ func (r *ProductService) Delete(id int) error {
 	return r.productModel.Delete(id)
 }
 
-func NewProductService(database *sql.DB) *ProductService {
-	productModel := model.NewProductModel(database)
+func NewProductService(productModel ProductModeler) *ProductService {
 	return &ProductService{
 		productModel: productModel,
 	}

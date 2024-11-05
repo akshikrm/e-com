@@ -4,7 +4,6 @@ import (
 	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
-	"database/sql"
 	"log"
 )
 
@@ -109,8 +108,6 @@ func (u *UserService) Delete(id int) error {
 	return u.userModel.Delete(id)
 }
 
-func NewUserService(database *sql.DB) *UserService {
-	userModel := model.NewUserModel(database)
-	profileModel := model.NewProfileModel(database)
+func NewUserService(userModel UserModeler, profileModel ProfileModeler) *UserService {
 	return &UserService{userModel: userModel, profileModel: profileModel}
 }

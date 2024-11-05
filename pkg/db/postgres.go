@@ -1,6 +1,7 @@
 package db
 
 import (
+	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/services"
 	"akshidas/e-com/pkg/types"
 	"database/sql"
@@ -173,7 +174,9 @@ func (s *PostgresStore) seedPermission() {
 
 func (s *PostgresStore) seedAdmin() {
 	log.Println("seeding admin")
-	userService := services.NewUserService(s.DB)
+	userModel := model.NewUserModel(s.DB)
+	profileModel := model.NewProfileModel(s.DB)
+	userService := services.NewUserService(userModel, profileModel)
 	user := types.CreateUserRequest{
 		FirstName: "Admin",
 		LastName:  "Me",
@@ -190,7 +193,9 @@ func (s *PostgresStore) seedAdmin() {
 
 func (s *PostgresStore) seedUsers() {
 	log.Println("seeding users")
-	userService := services.NewUserService(s.DB)
+	userModel := model.NewUserModel(s.DB)
+	profileModel := model.NewProfileModel(s.DB)
+	userService := services.NewUserService(userModel, profileModel)
 	userFile, err := os.Open("./seed/users.json")
 	if err != nil {
 		log.Println(err)

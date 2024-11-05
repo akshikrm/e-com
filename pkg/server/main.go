@@ -3,7 +3,6 @@ package server
 import (
 	"akshidas/e-com/pkg/api"
 	"akshidas/e-com/pkg/db"
-	"akshidas/e-com/pkg/services"
 	"context"
 	"log"
 	"net/http"
@@ -38,16 +37,13 @@ func (s *APIServer) Run() {
 
 func (s *APIServer) registerRoutes(r *http.ServeMux) {
 	ctx := context.Background()
-	// Services
-	userService := services.NewUserService(s.Store.(*db.PostgresStore).DB)
-	productService := services.NewProductService(s.Store.(*db.PostgresStore).DB)
 
 	// Api
-	userApi := api.NewUserApi(userService)
-	productApi := api.NewProductApi(productService)
+	userApi := api.NewUserApi(s.Store.(*db.PostgresStore).DB)
+	productApi := api.NewProductApi(s.Store.(*db.PostgresStore).DB)
 
 	// Middle wares
-	middlware := api.NewMiddleWare(userService)
+	middlware := api.NewMiddleWare(userApi.UserService)
 
 	// Public Routes
 	r.HandleFunc("POST /users", api.RouteHandler(userApi.Create))

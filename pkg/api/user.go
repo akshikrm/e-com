@@ -2,9 +2,11 @@ package api
 
 import (
 	"akshidas/e-com/pkg/model"
+	"akshidas/e-com/pkg/services"
 	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -143,6 +145,9 @@ func (u *UserApi) Delete(w http.ResponseWriter, r *http.Request) error {
 	return writeJson(w, http.StatusOK, "deleted successfully")
 }
 
-func NewUserApi(userService UserServicer) *UserApi {
+func NewUserApi(database *sql.DB) *UserApi {
+	userModel := model.NewUserModel(database)
+	profileModel := model.NewProfileModel(database)
+	userService := services.NewUserService(userModel, profileModel)
 	return &UserApi{UserService: userService}
 }
