@@ -63,4 +63,7 @@ func (s *APIServer) registerRoutes(r *http.ServeMux) {
 
 	r.HandleFunc("POST /products", api.RouteHandler(middlware.IsAdmin(ctx, productApi.Create)))
 	r.HandleFunc("GET /products", api.RouteHandler(middlware.IsAdmin(ctx, productApi.GetAll)))
+	r.HandleFunc("GET /products/{id}", api.RouteHandler(middlware.IsAdmin(ctx, productApi.GetOne)))
+	r.HandleFunc("PUT /products/{id}", api.RouteHandler(middlware.IsAdmin(ctx, productApi.Update)))
+	r.HandleFunc("DELETE /products/{id}", api.RouteHandler(middlware.IsAdmin(ctx, productApi.Delete)))
 }

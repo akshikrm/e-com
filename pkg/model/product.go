@@ -44,6 +44,29 @@ func (p *ProductModel) Create(product *types.CreateNewProduct) (*Product, error)
 	return savedProduct, nil
 }
 
+func (p *ProductModel) Update(pid int, product *types.CreateNewProduct) (*Product, error) {
+	query := `UPDATE products SET name=$1, slug=$2, price=$3, image=$4, description=$5 WHERE id=$6 RETURNING *`
+	row := p.store.QueryRow(query,
+		product.Name,
+		product.Slug,
+		product.Price,
+		product.Image,
+		product.Description,
+		pid,
+	)
+
+	savedProduct, err := scanProductRow(row)
+	if err == sql.ErrNoRows {
+		return nil, utils.NotFound
+	}
+
+	if err != nil {
+		log.Printf("failed to update product %s due to %s", product.Name, err)
+		return nil, utils.ServerError
+	}
+	return savedProduct, nil
+}
+
 func (p *ProductModel) GetAll() ([]*Product, error) {
 	query := "SELECT * FROM products;"
 	rows, err := p.store.Query(query)
@@ -64,6 +87,39 @@ func (p *ProductModel) GetAll() ([]*Product, error) {
 	}
 
 	return products, nil
+}
+
+func (m *ProductModel) GetOne(id int) (*Product, error) {
+	query := `select * from products where id=$1`
+	row := m.store.QueryRow(query, id)
+
+	product, err := scanProductRow(row)
+	if err == sql.ErrNoRows {
+
+		log.Printf("product with id %d not found due to %s", id, err)
+		return nil, utils.NotFound
+	}
+	if err != nil {
+		return nil, utils.ServerError
+	}
+
+	return product, nil
+}
+
+func (m *ProductModel) Delete(id int) error {
+	query := "delete from products where id=$1"
+	_, err := m.store.Exec(query, id)
+
+	if err == sql.ErrNoRows {
+		return utils.NotFound
+	}
+
+	if err != nil {
+		log.Printf("failed to products %d due to %s", id, err)
+		return utils.ServerError
+	}
+
+	return nil
 }
 
 func scanProductRows(rows *sql.Rows) ([]*Product, error) {

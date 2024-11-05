@@ -8,41 +8,40 @@ import (
 
 type ProductModeler interface {
 	GetAll() ([]*model.Product, error)
-	// GetOne(int) (*model.Product, error)
+	GetOne(int) (*model.Product, error)
 	Create(*types.CreateNewProduct) (*model.Product, error)
-	// Update(int, *types.CreateProductRequest) (*model.Product, error)
-	// Delete(int) error
+	Update(int, *types.CreateNewProduct) (*model.Product, error)
+	Delete(int) error
 }
 
 type ProductService struct {
-	roleModel ProductModeler
+	productModel ProductModeler
 }
 
 func (r *ProductService) Get() ([]*model.Product, error) {
-	return r.roleModel.GetAll()
+	return r.productModel.GetAll()
 }
 
 func (r *ProductService) Create(newProduct *types.CreateNewProduct) error {
-	_, err := r.roleModel.Create(newProduct)
+	_, err := r.productModel.Create(newProduct)
 	return err
 }
 
-// func (r *ProductService) GetOne(id int) (*model.Product, error) {
-// 	return r.roleModel.GetOne(id)
-// }
-//
-// func (r *ProductService) Update(id int, newProduct *types.CreateProductRequest) (*model.Product, error) {
-// 	return r.roleModel.Update(id, newProduct)
-// }
-//
-// func (r *ProductService) Delete(id int) error {
-// 	return r.roleModel.Delete(id)
-// }
-//
+func (r *ProductService) Update(id int, newProduct *types.CreateNewProduct) (*model.Product, error) {
+	return r.productModel.Update(id, newProduct)
+}
+
+func (r *ProductService) GetOne(id int) (*model.Product, error) {
+	return r.productModel.GetOne(id)
+}
+
+func (r *ProductService) Delete(id int) error {
+	return r.productModel.Delete(id)
+}
 
 func NewProductService(database *sql.DB) *ProductService {
-	roleModel := model.NewProductModel(database)
+	productModel := model.NewProductModel(database)
 	return &ProductService{
-		roleModel: roleModel,
+		productModel: productModel,
 	}
 }
