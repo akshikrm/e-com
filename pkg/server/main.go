@@ -4,6 +4,7 @@ import (
 	"akshidas/e-com/pkg/api"
 	"akshidas/e-com/pkg/db"
 	"akshidas/e-com/pkg/services"
+	"context"
 	"log"
 	"net/http"
 )
@@ -36,6 +37,7 @@ func (s *APIServer) Run() {
 }
 
 func (s *APIServer) registerRoutes(r *http.ServeMux) {
+	ctx := context.Background()
 	// Services
 	userService := services.NewUserService(s.Store.(*db.PostgresStore).DB)
 	productService := services.NewProductService(s.Store.(*db.PostgresStore).DB)
@@ -52,13 +54,13 @@ func (s *APIServer) registerRoutes(r *http.ServeMux) {
 	r.HandleFunc("POST /login", api.RouteHandler(userApi.Login))
 
 	// Authenticated Routes
-	r.HandleFunc("GET /profile", api.RouteHandler(api.IsAuthenticated(userApi.GetProfile)))
-	r.HandleFunc("PUT /profile", api.RouteHandler(api.IsAuthenticated(userApi.UpdateProfile)))
+	r.HandleFunc("GET /profile", api.RouteHandler(api.IsAuthenticated(ctx, userApi.GetProfile)))
+	r.HandleFunc("PUT /profile", api.RouteHandler(api.IsAuthenticated(ctx, userApi.UpdateProfile)))
 
 	// Admin Routes
-	r.HandleFunc("GET /users", api.RouteHandler(IsAdmin(userApi.GetAll)))
-	r.HandleFunc("GET /users/{id}", api.RouteHandler(IsAdmin(userApi.GetOne)))
+	r.HandleFunc("GET /users", api.RouteHandler(IsAdmin(ctx, userApi.GetAll)))
+	r.HandleFunc("GET /users/{id}", api.RouteHandler(IsAdmin(ctx, userApi.GetOne)))
 
-	r.HandleFunc("POST /products", api.RouteHandler(IsAdmin(productApi.Create)))
-	r.HandleFunc("GET /products", api.RouteHandler(IsAdmin(productApi.GetAll)))
+	r.HandleFunc("POST /products", api.RouteHandler(IsAdmin(ctx, productApi.Create)))
+	r.HandleFunc("GET /products", api.RouteHandler(IsAdmin(ctx, productApi.GetAll)))
 }

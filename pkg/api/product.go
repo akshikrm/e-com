@@ -3,6 +3,7 @@ package api
 import (
 	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/types"
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -18,7 +19,7 @@ type ProductApi struct {
 	ProductService ProductServicer
 }
 
-func (u *ProductApi) GetAll(_ int, w http.ResponseWriter, r *http.Request) error {
+func (u *ProductApi) GetAll(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	users, err := u.ProductService.Get()
 	if err != nil {
 		return err
@@ -26,7 +27,7 @@ func (u *ProductApi) GetAll(_ int, w http.ResponseWriter, r *http.Request) error
 	return writeJson(w, http.StatusOK, users)
 }
 
-func (u *ProductApi) Create(_ int, w http.ResponseWriter, r *http.Request) error {
+func (u *ProductApi) Create(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	a := &types.CreateNewProduct{}
 	if err := json.NewDecoder(r.Body).Decode(a); err != nil {
 		if err == io.EOF {

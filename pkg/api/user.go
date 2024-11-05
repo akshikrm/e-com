@@ -4,6 +4,7 @@ import (
 	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -34,8 +35,9 @@ type UserProfile struct {
 	Profile   *model.Profile `json:"profile"`
 }
 
-func (u *UserApi) GetProfile(id int, w http.ResponseWriter, r *http.Request) error {
-	userProfile, err := u.UserService.GetProfile(id)
+func (u *UserApi) GetProfile(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	id := ctx.Value("userID")
+	userProfile, err := u.UserService.GetProfile(id.(int))
 	if err != nil {
 		if err == utils.NotFound {
 			return writeJson(w, http.StatusNotFound, "not found")
@@ -45,20 +47,20 @@ func (u *UserApi) GetProfile(id int, w http.ResponseWriter, r *http.Request) err
 	return writeJson(w, http.StatusOK, userProfile)
 }
 
-func (u *UserApi) UpdateProfile(userId int, w http.ResponseWriter, r *http.Request) error {
+func (u *UserApi) UpdateProfile(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	id := ctx.Value("userID")
 	a := &types.UpdateProfileRequest{}
 	if err := json.NewDecoder(r.Body).Decode(a); err != nil {
 		return err
 	}
-	user, err := u.UserService.Update(userId, a)
+	user, err := u.UserService.Update(id.(int), a)
 	if err != nil {
 		return err
 	}
 	return writeJson(w, http.StatusOK, user)
 }
 
-func (u *UserApi) GetAll(id int, w http.ResponseWriter, r *http.Request) error {
-	fmt.Println("getting", id)
+func (u *UserApi) GetAll(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	users, err := u.UserService.Get()
 	if err != nil {
 		return err
@@ -66,7 +68,7 @@ func (u *UserApi) GetAll(id int, w http.ResponseWriter, r *http.Request) error {
 	return writeJson(w, http.StatusOK, users)
 }
 
-func (u *UserApi) GetOne(_ int, w http.ResponseWriter, r *http.Request) error {
+func (u *UserApi) GetOne(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	id, err := parseId(r.PathValue("id"))
 	if err != nil {
 		return fmt.Errorf("invalid id")
