@@ -12,7 +12,7 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	database := &db.PostgresStore{}
+	database := &db.Storage{}
 	database.Connect()
 
 	server := &server.APIServer{

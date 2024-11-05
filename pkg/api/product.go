@@ -1,12 +1,12 @@
 package api
 
 import (
+	"akshidas/e-com/pkg/db"
 	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/services"
 	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -94,8 +94,8 @@ func (u *ProductApi) Update(ctx context.Context, w http.ResponseWriter, r *http.
 	return writeJson(w, http.StatusCreated, product)
 }
 
-func NewProductApi(database *sql.DB) *ProductApi {
-	productModel := model.NewProductModel(database)
+func NewProductApi(database *db.Storage) *ProductApi {
+	productModel := model.NewProductModel(database.DB)
 	productService := services.NewProductService(productModel)
 	return &ProductApi{ProductService: productService}
 }

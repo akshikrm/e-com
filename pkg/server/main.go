@@ -8,15 +8,10 @@ import (
 	"net/http"
 )
 
-type Database interface {
-	Connect() error
-	Init()
-}
-
 type APIServer struct {
 	Status string
 	Port   string
-	Store  Database
+	Store  *db.Storage
 }
 
 // Create a new server and registers routes to it
@@ -39,8 +34,8 @@ func (s *APIServer) registerRoutes(r *http.ServeMux) {
 	ctx := context.Background()
 
 	// Api
-	userApi := api.NewUserApi(s.Store.(*db.PostgresStore).DB)
-	productApi := api.NewProductApi(s.Store.(*db.PostgresStore).DB)
+	userApi := api.NewUserApi(s.Store)
+	productApi := api.NewProductApi(s.Store)
 
 	// Middle wares
 	middlware := api.NewMiddleWare(userApi.UserService)

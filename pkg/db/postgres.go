@@ -15,7 +15,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type PostgresStore struct {
+type Storage struct {
 	DB *sql.DB
 }
 
@@ -28,7 +28,7 @@ const (
 	CREATE_PRODUCT    = "CREATE TABLE IF NOT EXISTS products (id SERIAL PRIMARY KEY, name VARCHAR(30), slug VARCHAR(30), price INTEGER NOT NULL DEFAULT 0, image VARCHAR(100),  description VARCHAR(300) NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL)"
 )
 
-func (s *PostgresStore) Connect() error {
+func (s *Storage) Connect() error {
 	db, err := sql.Open("postgres", s.getConnectionString())
 
 	if err != nil {
@@ -113,7 +113,7 @@ func dropFunction(store *sql.DB, function string) {
 	}
 }
 
-func (s *PostgresStore) NukeDB() {
+func (s *Storage) NukeDB() {
 	dropTrigger(s.DB, "update_user_task_updated_on", "roles")
 	dropTrigger(s.DB, "update_user_task_updated_on", "users")
 	dropTrigger(s.DB, "update_user_task_updated_on", "profiles")
@@ -130,7 +130,7 @@ func (s *PostgresStore) NukeDB() {
 	dropFunction(s.DB, "update_updated_on_user_task")
 }
 
-func (s *PostgresStore) seedRoles(role *types.CreateRoleRequest) {
+func (s *Storage) seedRoles(role *types.CreateRoleRequest) {
 	log.Println("seeding roles")
 	roleService := services.NewRoleService(s.DB)
 	err := roleService.Create(role)
@@ -140,7 +140,7 @@ func (s *PostgresStore) seedRoles(role *types.CreateRoleRequest) {
 	log.Printf("Successfully seed role %s\n", role.Name)
 }
 
-func (s *PostgresStore) seedResources() {
+func (s *Storage) seedResources() {
 	log.Println("seeding Resource")
 	resourceService := services.NewResourceService(s.DB)
 	resource := types.CreateResourceRequest{
@@ -155,7 +155,7 @@ func (s *PostgresStore) seedResources() {
 	log.Printf("Successfully seed resource %s\n", resource.Name)
 }
 
-func (s *PostgresStore) seedPermission() {
+func (s *Storage) seedPermission() {
 	log.Println("seeding permission")
 	permissionService := services.NewPermissionService(s.DB)
 	permission := types.CreateNewPermission{
@@ -172,7 +172,7 @@ func (s *PostgresStore) seedPermission() {
 	log.Println("Successfully seed permission")
 }
 
-func (s *PostgresStore) seedAdmin() {
+func (s *Storage) seedAdmin() {
 	log.Println("seeding admin")
 	userModel := model.NewUserModel(s.DB)
 	profileModel := model.NewProfileModel(s.DB)
@@ -191,7 +191,7 @@ func (s *PostgresStore) seedAdmin() {
 	log.Println("Successfully seed admin")
 }
 
-func (s *PostgresStore) seedUsers() {
+func (s *Storage) seedUsers() {
 	log.Println("seeding users")
 	userModel := model.NewUserModel(s.DB)
 	profileModel := model.NewProfileModel(s.DB)
@@ -221,7 +221,7 @@ func (s *PostgresStore) seedUsers() {
 	log.Println("Successfully seed users")
 }
 
-func (s *PostgresStore) Init() {
+func (s *Storage) Init() {
 	CreateTable(s.DB, CREATE_ROLE, "roles")
 	CreateTable(s.DB, CREATE_RESOURCE, "resources")
 	CreateTable(s.DB, CREATE_PERMISSION, "permissions")
@@ -292,7 +292,7 @@ func CreateUpdatedAtTrigger(db *sql.DB, table string) {
 	log.Printf("Created trigger update_user_task_updated_on on %s\n", table)
 }
 
-func (s *PostgresStore) getConnectionString() string {
+func (s *Storage) getConnectionString() string {
 	db_user := os.Getenv("DB_USER")
 	db_name := os.Getenv("DB_NAME")
 	db_password := os.Getenv("DB_PASSWORD")
