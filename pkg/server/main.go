@@ -47,20 +47,20 @@ func (s *APIServer) registerRoutes(r *http.ServeMux) {
 	productApi := api.NewProductApi(productService)
 
 	// Middle wares
-	IsAdmin := api.IsAdmin(userService)
+	middlware := api.NewMiddleWare(userService)
 
 	// Public Routes
 	r.HandleFunc("POST /users", api.RouteHandler(userApi.Create))
 	r.HandleFunc("POST /login", api.RouteHandler(userApi.Login))
 
 	// Authenticated Routes
-	r.HandleFunc("GET /profile", api.RouteHandler(api.IsAuthenticated(ctx, userApi.GetProfile)))
-	r.HandleFunc("PUT /profile", api.RouteHandler(api.IsAuthenticated(ctx, userApi.UpdateProfile)))
+	r.HandleFunc("GET /profile", api.RouteHandler(middlware.IsAuthenticated(ctx, userApi.GetProfile)))
+	r.HandleFunc("PUT /profile", api.RouteHandler(middlware.IsAuthenticated(ctx, userApi.UpdateProfile)))
 
 	// Admin Routes
-	r.HandleFunc("GET /users", api.RouteHandler(IsAdmin(ctx, userApi.GetAll)))
-	r.HandleFunc("GET /users/{id}", api.RouteHandler(IsAdmin(ctx, userApi.GetOne)))
+	r.HandleFunc("GET /users", api.RouteHandler(middlware.IsAdmin(ctx, userApi.GetAll)))
+	r.HandleFunc("GET /users/{id}", api.RouteHandler(middlware.IsAdmin(ctx, userApi.GetOne)))
 
-	r.HandleFunc("POST /products", api.RouteHandler(IsAdmin(ctx, productApi.Create)))
-	r.HandleFunc("GET /products", api.RouteHandler(IsAdmin(ctx, productApi.GetAll)))
+	r.HandleFunc("POST /products", api.RouteHandler(middlware.IsAdmin(ctx, productApi.Create)))
+	r.HandleFunc("GET /products", api.RouteHandler(middlware.IsAdmin(ctx, productApi.GetAll)))
 }

@@ -3,33 +3,30 @@ package api
 import (
 	"akshidas/e-com/pkg/utils"
 	"context"
-	"net/http"
-
 	"github.com/golang-jwt/jwt/v5"
+	"net/http"
 )
 
 type apiFuncWithContext func(context.Context, http.ResponseWriter, *http.Request) error
-type AdminWrapperFunc func(context.Context, apiFuncWithContext) apiFunc
 
-func IsAdmin(userService UserServicer) AdminWrapperFunc {
-	return func(ctx context.Context, f apiFuncWithContext) apiFunc {
-		validateAdmin := func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-			id := ctx.Value("userID")
-			user, err := userService.GetOne(id.(int))
-			if err != nil {
-				return accessDenied(w)
-			}
-			if user.Role == "admin" {
-				return f(ctx, w, r)
-			}
+type MiddleWares struct{ userService UserServicer }
+
+func (m *MiddleWares) IsAdmin(ctx context.Context, f apiFuncWithContext) apiFunc {
+	validateAdmin := func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+		id := ctx.Value("userID")
+		user, err := m.userService.GetOne(id.(int))
+		if err != nil {
 			return accessDenied(w)
 		}
-
-		return IsAuthenticated(ctx, validateAdmin)
+		if user.Role == "admin" {
+			return f(ctx, w, r)
+		}
+		return accessDenied(w)
 	}
+	return m.IsAuthenticated(ctx, validateAdmin)
 }
 
-func IsAuthenticated(ctx context.Context, f apiFuncWithContext) apiFunc {
+func (m *MiddleWares) IsAuthenticated(ctx context.Context, f apiFuncWithContext) apiFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		authtoken := r.Header.Get("Authorization")
 		token, err := utils.ValidateJWT(authtoken)
@@ -46,4 +43,8 @@ func IsAuthenticated(ctx context.Context, f apiFuncWithContext) apiFunc {
 		}
 		return accessDenied(w)
 	}
+}
+
+func NewMiddleWare(userService UserServicer) *MiddleWares {
+	return &MiddleWares{userService: userService}
 }
