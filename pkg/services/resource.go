@@ -1,9 +1,9 @@
 package services
 
 import (
+	"akshidas/e-com/pkg/db"
 	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/types"
-	"database/sql"
 )
 
 type ResourceModeler interface {
@@ -38,8 +38,8 @@ func (r *ResourceService) Delete(id int) error {
 	return r.roleModel.Delete(id)
 }
 
-func NewResourceService(database *sql.DB) *ResourceService {
-	roleModel := model.NewResourceModel(database)
+func NewResourceService(database *db.Storage) *ResourceService {
+	roleModel := model.NewResourceModel(database.DB)
 	return &ResourceService{
 		roleModel: roleModel,
 	}

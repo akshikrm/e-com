@@ -1,9 +1,9 @@
 package services
 
 import (
+	"akshidas/e-com/pkg/db"
 	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/types"
-	"database/sql"
 )
 
 type PermissionModeler interface {
@@ -38,8 +38,8 @@ func (r *PermissionService) Delete(id int) error {
 	return r.permissionModel.Delete(id)
 }
 
-func NewPermissionService(database *sql.DB) *PermissionService {
-	permissionModel := model.NewPermissionModel(database)
+func NewPermissionService(database *db.Storage) *PermissionService {
+	permissionModel := model.NewPermissionModel(database.DB)
 	return &PermissionService{
 		permissionModel: permissionModel,
 	}
