@@ -22,6 +22,18 @@ func accessDenied(w http.ResponseWriter) error {
 	return writeError(w, http.StatusUnauthorized, errors.New("access denied"))
 }
 
+func invalidId(w http.ResponseWriter) error {
+	return writeError(w, http.StatusUnprocessableEntity, errors.New("invalid id"))
+}
+
+func invalidRequest(w http.ResponseWriter) error {
+	return writeError(w, http.StatusUnprocessableEntity, errors.New("invalid request"))
+}
+
+func notFound(w http.ResponseWriter) error {
+	return writeError(w, http.StatusNotFound, errors.New("not found"))
+}
+
 func RouteHandler(f apiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := f(w, r); err != nil {

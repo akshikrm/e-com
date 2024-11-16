@@ -82,7 +82,7 @@ func (p *ProductModel) GetAll() ([]*Product, error) {
 
 	products, err := scanProductRows(rows)
 	if err != nil {
-		log.Printf("Failed to save product")
+		log.Printf("failed to get all products due to %s", err)
 		return nil, utils.ServerError
 	}
 
