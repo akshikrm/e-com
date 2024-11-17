@@ -75,8 +75,18 @@ func (p *ProfileModel) Create(profile *types.NewProfileRequest) (int, error) {
 		log.Printf("failed to scan user after writing %d %s", savedProfile.ID, err)
 		return 0, utils.ServerError
 	}
-
 	return savedProfile.ID, nil
+}
+
+func (p *ProfileModel) CheckIfUserExists(email string) bool {
+	query := "SELECT EXISTS(SELECT 1 FROM profiles WHERE email=$1)"
+	row := p.DB.QueryRow(query, email)
+	var status bool
+	if err := row.Scan(&status); err != nil {
+		log.Printf("failed to check if user with %s email exists due to %s", email, err)
+		return false
+	}
+	return status
 }
 
 func (p *ProfileModel) UpdateProfileByUserID(userId int, profile *types.UpdateProfileRequest) error {

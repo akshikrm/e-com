@@ -113,6 +113,9 @@ func (u *UserApi) Create(w http.ResponseWriter, r *http.Request) error {
 	}
 	token, err := u.UserService.Create(*a)
 	if err != nil {
+		if err == utils.Conflict {
+			return conflict(w)
+		}
 		return err
 	}
 	return writeJson(w, http.StatusCreated, token)

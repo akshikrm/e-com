@@ -26,6 +26,10 @@ func invalidId(w http.ResponseWriter) error {
 	return writeError(w, http.StatusUnprocessableEntity, errors.New("invalid id"))
 }
 
+func conflict(w http.ResponseWriter) error {
+	return writeError(w, http.StatusConflict, errors.New("conflict"))
+}
+
 func invalidRequest(w http.ResponseWriter) error {
 	return writeError(w, http.StatusUnprocessableEntity, errors.New("invalid request"))
 }

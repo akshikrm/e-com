@@ -21,6 +21,7 @@ type ProfileModeler interface {
 	GetByUserId(int) (*model.Profile, error)
 	Create(*types.NewProfileRequest) (int, error)
 	UpdateProfileByUserID(int, *types.UpdateProfileRequest) error
+	CheckIfUserExists(string) bool
 }
 
 type UserService struct {
@@ -70,6 +71,10 @@ func (u *UserService) Create(user types.CreateUserRequest) (string, error) {
 		return "", err
 	}
 
+	exists := u.profileModel.CheckIfUserExists(user.Email)
+	if exists {
+		return "", utils.Conflict
+	}
 	user.Password = hashedPassword
 	userId, err := u.userModel.Create(user)
 	if err != nil {
