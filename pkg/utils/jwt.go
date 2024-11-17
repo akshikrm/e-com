@@ -7,12 +7,13 @@ import (
 	"time"
 )
 
-func CreateJwt(id int) (string, error) {
+func CreateJwt(id int, role string) (string, error) {
 	now := time.Now()
 	claims := jwt.MapClaims{
-		"exp": now.Add(time.Hour * 24).Unix(),
-		"sub": id,
-		"iat": now.Unix(),
+		"exp":  now.Add(time.Hour * 24).Unix(),
+		"sub":  id,
+		"iat":  now.Unix(),
+		"role": role,
 	}
 
 	secret := os.Getenv("JWT_SECRET")

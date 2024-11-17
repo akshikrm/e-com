@@ -12,7 +12,7 @@ type UserModeler interface {
 	GetOne(id int) (*model.User, error)
 	GetPasswordByEmail(email string) (*model.User, error)
 	GetUserByEmail(email string) (*model.User, error)
-	Create(user types.CreateUserRequest) (int, error)
+	Create(user types.CreateUserRequest) (*model.User, error)
 	Update(id int, user types.UpdateUserRequest) error
 	Delete(id int) error
 }
@@ -40,7 +40,7 @@ func (u *UserService) Login(payload *types.LoginUserRequest) (string, error) {
 		return "", utils.Unauthorized
 	}
 
-	token, err := utils.CreateJwt(user.ID)
+	token, err := utils.CreateJwt(user.ID, user.Role)
 	if err != nil {
 		return "", err
 	}
@@ -76,29 +76,24 @@ func (u *UserService) Create(user types.CreateUserRequest) (string, error) {
 		return "", utils.Conflict
 	}
 	user.Password = hashedPassword
-	userId, err := u.userModel.Create(user)
+	savedUser, err := u.userModel.Create(user)
 	if err != nil {
 		return "", err
 	}
-
 	newUserProfile := types.NewProfileRequest{
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		Email:     user.Email,
-		UserID:    userId,
+		UserID:    savedUser.ID,
 	}
-
 	if _, err := u.profileModel.Create(&newUserProfile); err != nil {
 		return "", err
 	}
-
-	token, err := utils.CreateJwt(userId)
+	token, err := utils.CreateJwt(savedUser.ID, user.Role)
 	if err != nil {
 		return "", err
 	}
-
 	return token, nil
-
 }
 
 func (u *UserService) Update(id int, user *types.UpdateProfileRequest) (*model.Profile, error) {

@@ -43,11 +43,12 @@ func (m *UserModel) Get() ([]*User, error) {
 }
 
 func (m *UserModel) GetPasswordByEmail(email string) (*User, error) {
-	query := `select user_id,password from users inner join profiles on users.id = profiles.user_id where email=$1;`
+	query := `select user_id, password, role_code from users inner join profiles on users.id = profiles.user_id where email=$1;`
+
 	row := m.DB.QueryRow(query, email)
 
 	user := User{}
-	if err := row.Scan(&user.ID, &user.Password); err != nil {
+	if err := row.Scan(&user.ID, &user.Password, &user.Role); err != nil {
 		if err == sql.ErrNoRows {
 			log.Printf("profile with email: %s not found", email)
 			return nil, utils.NotFound
@@ -86,11 +87,11 @@ func (m *UserModel) GetUserByEmail(email string) (*User, error) {
 
 }
 
-func (m *UserModel) Create(user types.CreateUserRequest) (int, error) {
+func (m *UserModel) Create(user types.CreateUserRequest) (*User, error) {
 	query := `insert into 
 	users (password, role_code)
 	values($1, $2)
-	returning id
+	returning id, role_code
 	`
 	role := "user"
 	if user.Role != "" {
@@ -103,12 +104,12 @@ func (m *UserModel) Create(user types.CreateUserRequest) (int, error) {
 	log.Printf("Created user %v", user)
 
 	savedUser := User{}
-	if err := row.Scan(&savedUser.ID); err != nil {
+	if err := row.Scan(&savedUser.ID, &savedUser.Role); err != nil {
 		log.Printf("failed to scan user after writing %d %s", savedUser.ID, err)
-		return 0, utils.ServerError
+		return nil, utils.ServerError
 	}
 
-	return savedUser.ID, nil
+	return &savedUser, nil
 }
 
 func (m *UserModel) Update(id int, user types.UpdateUserRequest) error {
