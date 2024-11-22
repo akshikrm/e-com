@@ -40,6 +40,14 @@ func notFound(w http.ResponseWriter) error {
 
 func RouteHandler(f apiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+
+		if r.Method == "OPTIONS" {
+			writeError(w, http.StatusNoContent, errors.New("no content"))
+			return
+		}
+
 		if err := f(w, r); err != nil {
 			writeError(w, http.StatusInternalServerError, err)
 		}
@@ -48,12 +56,16 @@ func RouteHandler(f apiFunc) http.HandlerFunc {
 
 func writeJson(w http.ResponseWriter, status int, value any) error {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
 	w.WriteHeader(status)
 	return json.NewEncoder(w).Encode(&ApiResponse{Data: value})
 }
 
 func writeError(w http.ResponseWriter, status int, err error) error {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
 	w.WriteHeader(status)
 	return json.NewEncoder(w).Encode(&ApiError{Error: err.Error()})
 }

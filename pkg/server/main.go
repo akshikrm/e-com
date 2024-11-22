@@ -20,6 +20,14 @@ func (s *APIServer) Run() {
 	router := http.NewServeMux()
 
 	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.Write([]byte("server is up and running"))
+	})
+
+	router.HandleFunc("OPTIONS /", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
 		w.Write([]byte("server is up and running"))
 	})
 
@@ -27,6 +35,7 @@ func (s *APIServer) Run() {
 
 	wrappedRouter := NewLogger(router)
 	log.Printf("🚀 Server started on port %s", s.Port)
+
 	log.Fatal(http.ListenAndServe(s.Port, wrappedRouter))
 }
 
@@ -58,8 +67,11 @@ func (s *APIServer) registerRoutes(r *http.ServeMux) {
 	r.HandleFunc("GET /users/{id}", api.RouteHandler(middlware.IsAdmin(ctx, userApi.GetOne)))
 
 	r.HandleFunc("POST /products", api.RouteHandler(middlware.IsAdmin(ctx, productApi.Create)))
+
 	r.HandleFunc("GET /products", api.RouteHandler(middlware.IsAdmin(ctx, productApi.GetAll)))
+	r.HandleFunc("OPTIONS /products", api.RouteHandler(middlware.IsAdmin(ctx, productApi.GetAll)))
 	r.HandleFunc("GET /products/{id}", api.RouteHandler(middlware.IsAdmin(ctx, productApi.GetOne)))
 	r.HandleFunc("PUT /products/{id}", api.RouteHandler(middlware.IsAdmin(ctx, productApi.Update)))
 	r.HandleFunc("DELETE /products/{id}", api.RouteHandler(middlware.IsAdmin(ctx, productApi.Delete)))
+
 }
