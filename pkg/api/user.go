@@ -94,7 +94,11 @@ func (u *UserApi) Login(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	token, err := u.UserService.Login(&a)
+	fmt.Println(err)
 	if err != nil {
+		if err == utils.Unauthorized {
+			return writeError(w, http.StatusUnauthorized, err)
+		}
 		if err == utils.NotFound {
 			return writeError(w, http.StatusNotFound, err)
 		}
