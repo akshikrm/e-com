@@ -4,18 +4,17 @@ import (
 	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
 	"database/sql"
-	"fmt"
 	"log"
 	"time"
 )
 
 type User struct {
-	ID        int       `json:"id"`
-	Password  string    `json:"-"`
-	Role      string    `json:"role_code"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	DeletedAt time.Time `json:"deleted_at"`
+	ID        int        `json:"id"`
+	Password  string     `json:"-"`
+	Role      string     `json:"role_code"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `json:"deleted_at"`
 }
 
 type UserModel struct {
@@ -23,7 +22,7 @@ type UserModel struct {
 }
 
 func (m *UserModel) Get() ([]*User, error) {
-	query := `select * from users where role_code != 'admin';`
+	query := "select * from users where role_code != 'admin' AND deleted_at IS NULL;"
 
 	rows, err := m.store.Query(query)
 	if err != nil {
@@ -44,7 +43,7 @@ func (m *UserModel) Get() ([]*User, error) {
 }
 
 func (m *UserModel) GetPasswordByEmail(email string) (*User, error) {
-	query := `select user_id, password, role_code from users inner join profiles on users.id = profiles.user_id where email=$1;`
+	query := "select user_id, password, role_code from users inner join profiles on users.id = profiles.user_id where email=$1 AND users.deleted_at IS NULL;"
 
 	row := m.store.QueryRow(query, email)
 
@@ -57,12 +56,11 @@ func (m *UserModel) GetPasswordByEmail(email string) (*User, error) {
 		log.Printf("failed to retrieve for email: %s due to error:%s", email, err)
 		return nil, utils.ServerError
 	}
-	fmt.Println(user)
 	return &user, nil
 }
 
 func (m *UserModel) GetOne(id int) (*User, error) {
-	query := `select id, role_code, created_at,updated_at from users where id=$1`
+	query := "select id, role_code, created_at,updated_at from users where id=$1 AND deleted_at IS NULL"
 	row := m.store.QueryRow(query, id)
 	user := &User{}
 	err := row.Scan(
@@ -80,7 +78,7 @@ func (m *UserModel) GetOne(id int) (*User, error) {
 }
 
 func (m *UserModel) GetUserByEmail(email string) (*User, error) {
-	query := `select * from users where email=$1`
+	query := "select * from users where email=$1 AND deleted_at IS NULL"
 	row := m.store.QueryRow(query, email)
 
 	user, err := ScanRow(row)

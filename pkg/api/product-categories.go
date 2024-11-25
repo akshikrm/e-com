@@ -5,7 +5,6 @@ import (
 	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/services"
 	"akshidas/e-com/pkg/types"
-	"akshidas/e-com/pkg/utils"
 	"context"
 	"net/http"
 )
@@ -25,17 +24,11 @@ type ProductCategoriesApi struct {
 func (s *ProductCategoriesApi) Create(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	newProductCategory := types.NewProductCategoryRequest{}
 	if err := DecodeBody(r.Body, &newProductCategory); err != nil {
-		if err == utils.InvalidRequest {
-			return invalidRequest(w)
-		}
-		return serverError(w)
+		return err
 	}
 	_, err := s.service.Create(&newProductCategory)
 	if err != nil {
-		if err == utils.NotFound {
-			return notFound(w)
-		}
-		return serverError(w)
+		return err
 	}
 	return writeJson(w, http.StatusCreated, "product category created")
 }
@@ -43,10 +36,7 @@ func (s *ProductCategoriesApi) Create(ctx context.Context, w http.ResponseWriter
 func (s *ProductCategoriesApi) GetAll(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	productCategories, err := s.service.GetAll()
 	if err != nil {
-		if err == utils.NotFound {
-			return notFound(w)
-		}
-		return serverError(w)
+		return err
 	}
 	return writeJson(w, http.StatusOK, productCategories)
 }
@@ -54,14 +44,11 @@ func (s *ProductCategoriesApi) GetAll(ctx context.Context, w http.ResponseWriter
 func (s *ProductCategoriesApi) GetOne(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	id, err := parseId(r.PathValue("id"))
 	if err != nil {
-		return invalidId(w)
+		return err
 	}
 	productCategories, err := s.service.GetOne(id)
 	if err != nil {
-		if err == utils.NotFound {
-			return notFound(w)
-		}
-		return serverError(w)
+		return err
 	}
 	return writeJson(w, http.StatusOK, productCategories)
 }
@@ -69,22 +56,16 @@ func (s *ProductCategoriesApi) GetOne(ctx context.Context, w http.ResponseWriter
 func (s *ProductCategoriesApi) Update(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	id, err := parseId(r.PathValue("id"))
 	if err != nil {
-		return invalidId(w)
+		return err
 	}
 	updateProductCategory := types.UpdateProductCategoryRequest{}
 	if err := DecodeBody(r.Body, &updateProductCategory); err != nil {
-		if err == utils.InvalidRequest {
-			return invalidRequest(w)
-		}
-		return serverError(w)
+		return err
 	}
 
 	updatedProductCategory, err := s.service.Update(id, &updateProductCategory)
 	if err != nil {
-		if err == utils.NotFound {
-			return notFound(w)
-		}
-		return serverError(w)
+		return err
 	}
 	return writeJson(w, http.StatusOK, updatedProductCategory)
 }
@@ -92,14 +73,11 @@ func (s *ProductCategoriesApi) Update(ctx context.Context, w http.ResponseWriter
 func (s *ProductCategoriesApi) Delete(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	id, err := parseId(r.PathValue("id"))
 	if err != nil {
-		return invalidId(w)
+		return err
 	}
 
 	if err := s.service.Delete(id); err != nil {
-		if err == utils.NotFound {
-			return notFound(w)
-		}
-		return serverError(w)
+		return err
 	}
 	return writeJson(w, http.StatusOK, "delete successfully")
 }

@@ -42,7 +42,7 @@ func (p *ProductCategoriesModel) Create(newCategory *types.NewProductCategoryReq
 }
 
 func (p *ProductCategoriesModel) GetAll() ([]*ProductCategory, error) {
-	query := "SELECT * FROM  product_categories"
+	query := "SELECT * FROM  product_categories WHERE deleted_at IS NULL"
 	rows, err := p.store.Query(query)
 	if err == sql.ErrNoRows {
 		return nil, utils.NotFound
@@ -60,11 +60,11 @@ func (p *ProductCategoriesModel) GetAll() ([]*ProductCategory, error) {
 }
 
 func (p *ProductCategoriesModel) GetOne(id int) (*ProductCategory, error) {
-	query := "SELECT * FROM product_categories WHERE id=$1"
+	query := "SELECT * FROM product_categories WHERE id=$1 AND deleted_at IS NULL"
 	row := p.store.QueryRow(query, id)
 	productCategory, err := scanCategoryRow(row)
 	if err != nil {
-		log.Printf("failed to get product category with %s due to %s", id, err)
+		log.Printf("failed to get product category with %d due to %s", id, err)
 		if err == sql.ErrNoRows {
 			return nil, utils.NotFound
 		}
@@ -74,7 +74,7 @@ func (p *ProductCategoriesModel) GetOne(id int) (*ProductCategory, error) {
 }
 
 func (p *ProductCategoriesModel) Update(id int, updateProductCategory *types.UpdateProductCategoryRequest) (*ProductCategory, error) {
-	query := "UPDATE product_categories SET name=$1, slug=$2, description=$3, enabled=$4 WHERE id=$5 RETURNING *"
+	query := "UPDATE product_categories SET name=$1, slug=$2, description=$3, enabled=$4 WHERE id=$5 AND deleted_at IS NULL RETURNING *"
 	row := p.store.QueryRow(
 		query,
 		updateProductCategory.Name,
@@ -95,7 +95,7 @@ func (p *ProductCategoriesModel) Update(id int, updateProductCategory *types.Upd
 }
 
 func (p *ProductCategoriesModel) Delete(id int) error {
-	query := "UPDATE product_categories set deleted_at=$1 where id=$2"
+	query := "UPDATE product_categories set deleted_at=$1 where id=$2 AND deleted_at IS NULL"
 	if _, err := p.store.Exec(query, time.Now(), id); err != nil {
 		log.Printf("failed to delete product category with id %d due to %s", id, err)
 		return utils.ServerError

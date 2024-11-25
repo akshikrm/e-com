@@ -34,6 +34,7 @@ func (m *MiddleWares) IsAuthenticated(ctx context.Context, f apiFuncWithContext)
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
 			id := int(claims["sub"].(float64))
 			user, err := m.userService.GetOne(id)
+
 			if err != nil {
 				return accessDenied(w)
 			}
