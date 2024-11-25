@@ -1,9 +1,11 @@
 package api
 
 import (
+	"akshidas/e-com/pkg/utils"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 )
@@ -80,4 +82,14 @@ func parseId(id string) (int, error) {
 		return 0, fmt.Errorf("invalid id")
 	}
 	return parsedId, nil
+}
+
+func DecodeBody(body io.ReadCloser, a any) error {
+	if err := json.NewDecoder(body).Decode(a); err != nil {
+		if err == io.EOF {
+			return utils.InvalidRequest
+		}
+		return err
+	}
+	return nil
 }
