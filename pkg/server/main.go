@@ -46,7 +46,7 @@ func (s *APIServer) registerRoutes(r *http.ServeMux) {
 	userApi := api.NewUserApi(s.Store)
 	productApi := api.NewProductApi(s.Store)
 	cartApi := api.NewCartApi(s.Store)
-
+	productCategoryApi := api.NewProductCategoriesApi(s.Store)
 	// Middle wares
 	middlware := api.NewMiddleWare(userApi.UserService)
 
@@ -67,6 +67,10 @@ func (s *APIServer) registerRoutes(r *http.ServeMux) {
 	r.HandleFunc("GET /users/{id}", api.RouteHandler(middlware.IsAdmin(ctx, userApi.GetOne)))
 
 	r.HandleFunc("POST /products", api.RouteHandler(middlware.IsAdmin(ctx, productApi.Create)))
+
+	r.HandleFunc("POST /products/categories", api.RouteHandler(middlware.IsAdmin(ctx, productCategoryApi.Create)))
+
+	r.HandleFunc("GET /products/categories", api.RouteHandler(middlware.IsAdmin(ctx, productCategoryApi.GetAll)))
 
 	r.HandleFunc("GET /products", api.RouteHandler(middlware.IsAdmin(ctx, productApi.GetAll)))
 	r.HandleFunc("OPTIONS /products", api.RouteHandler(middlware.IsAdmin(ctx, productApi.GetAll)))

@@ -38,6 +38,10 @@ func notFound(w http.ResponseWriter) error {
 	return writeError(w, http.StatusNotFound, errors.New("not found"))
 }
 
+func serverError(w http.ResponseWriter) error {
+	return writeError(w, http.StatusInternalServerError, errors.New("something went wrong"))
+}
+
 func RouteHandler(f apiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
