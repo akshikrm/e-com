@@ -93,7 +93,16 @@ func (p *ProductCategoriesModel) Update(id int, updateProductCategory *types.Upd
 	return productCategory, err
 }
 
-func (p *ProductCategoriesModel) Delete() {}
+func (p *ProductCategoriesModel) Delete(id int) error {
+	query := "DELETE FROM product_categories WHERE id=$1"
+
+	if _, err := p.store.Exec(query, id); err != nil {
+		log.Default().Printf("failed to delete product category with id %d due to %s", id, err)
+		return utils.ServerError
+	}
+
+	return nil
+}
 
 func scanCategoryRow(row *sql.Row) (*ProductCategory, error) {
 	productCategory := &ProductCategory{}

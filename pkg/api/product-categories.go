@@ -15,6 +15,7 @@ type ProductCateogriesServicer interface {
 	GetAll() ([]*model.ProductCategory, error)
 	GetOne(int) (*model.ProductCategory, error)
 	Update(int, *types.UpdateProductCategoryRequest) (*model.ProductCategory, error)
+	Delete(int) error
 }
 
 type ProductCategoriesApi struct {
@@ -86,6 +87,21 @@ func (s *ProductCategoriesApi) Update(ctx context.Context, w http.ResponseWriter
 		return serverError(w)
 	}
 	return writeJson(w, http.StatusOK, updatedProductCategory)
+}
+
+func (s *ProductCategoriesApi) Delete(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	id, err := parseId(r.PathValue("id"))
+	if err != nil {
+		return invalidId(w)
+	}
+
+	if err := s.service.Delete(id); err != nil {
+		if err == utils.NotFound {
+			return notFound(w)
+		}
+		return serverError(w)
+	}
+	return writeJson(w, http.StatusOK, "delete successfully")
 }
 
 func NewProductCategoriesApi(storage *db.Storage) *ProductCategoriesApi {

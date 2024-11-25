@@ -10,6 +10,7 @@ type ProductCategoriesModeler interface {
 	GetAll() ([]*model.ProductCategory, error)
 	GetOne(int) (*model.ProductCategory, error)
 	Update(int, *types.UpdateProductCategoryRequest) (*model.ProductCategory, error)
+	Delete(int) error
 }
 
 type ProductCategoryService struct {
@@ -30,6 +31,10 @@ func (p *ProductCategoryService) GetOne(id int) (*model.ProductCategory, error) 
 
 func (p *ProductCategoryService) Update(id int, updateProductCategory *types.UpdateProductCategoryRequest) (*model.ProductCategory, error) {
 	return p.model.Update(id, updateProductCategory)
+}
+
+func (p *ProductCategoryService) Delete(id int) error {
+	return p.model.Delete(id)
 }
 
 func NewProductCategoryService(model ProductCategoriesModeler) *ProductCategoryService {
