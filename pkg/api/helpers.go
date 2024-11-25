@@ -4,7 +4,6 @@ import (
 	"akshidas/e-com/pkg/utils"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -55,8 +54,28 @@ func RouteHandler(f apiFunc) http.HandlerFunc {
 		}
 
 		if err := f(w, r); err != nil {
-			writeError(w, http.StatusInternalServerError, err)
+			handleError(w, err)
+			// writeError(w, http.StatusInternalServerError, err)
 		}
+	}
+}
+
+func handleError(w http.ResponseWriter, err error) {
+	switch err {
+	case utils.InvalidRequest:
+		invalidRequest(w)
+	case utils.NotFound:
+		notFound(w)
+	case utils.InvalidRequest:
+		invalidRequest(w)
+	case utils.Conflict:
+		conflict(w)
+	case utils.Unauthorized:
+		accessDenied(w)
+	case utils.InvalidParam:
+		invalidId(w)
+	default:
+		serverError(w)
 	}
 }
 
@@ -79,7 +98,7 @@ func writeError(w http.ResponseWriter, status int, err error) error {
 func parseId(id string) (int, error) {
 	parsedId, err := strconv.Atoi(id)
 	if err != nil {
-		return 0, fmt.Errorf("invalid id")
+		return 0, utils.InvalidParam
 	}
 	return parsedId, nil
 }

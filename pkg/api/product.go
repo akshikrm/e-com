@@ -5,11 +5,8 @@ import (
 	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/services"
 	"akshidas/e-com/pkg/types"
-	"akshidas/e-com/pkg/utils"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 )
 
@@ -36,13 +33,10 @@ func (u *ProductApi) GetAll(ctx context.Context, w http.ResponseWriter, r *http.
 func (u *ProductApi) GetOne(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	id, err := parseId(r.PathValue("id"))
 	if err != nil {
-		return invalidId(w)
+		return err
 	}
 	foundProduct, err := u.ProductService.GetOne(id)
 	if err != nil {
-		if err == utils.NotFound {
-			return notFound(w)
-		}
 		return err
 	}
 	return writeJson(w, http.StatusOK, foundProduct)
@@ -51,12 +45,9 @@ func (u *ProductApi) GetOne(ctx context.Context, w http.ResponseWriter, r *http.
 func (u *ProductApi) Delete(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	id, err := parseId(r.PathValue("id"))
 	if err != nil {
-		return fmt.Errorf("invalid id")
+		return err
 	}
 	if err := u.ProductService.Delete(id); err != nil {
-		if err == utils.NotFound {
-			return notFound(w)
-		}
 		return err
 	}
 	return writeJson(w, http.StatusOK, "deleted successfully")
@@ -64,10 +55,7 @@ func (u *ProductApi) Delete(ctx context.Context, w http.ResponseWriter, r *http.
 
 func (u *ProductApi) Create(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	a := &types.CreateNewProduct{}
-	if err := json.NewDecoder(r.Body).Decode(a); err != nil {
-		if err == io.EOF {
-			return invalidRequest(w)
-		}
+	if err := DecodeBody(r.Body, &a); err != nil {
 		return err
 	}
 	err := u.ProductService.Create(a)
@@ -79,18 +67,16 @@ func (u *ProductApi) Create(ctx context.Context, w http.ResponseWriter, r *http.
 
 func (u *ProductApi) Update(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	a := types.CreateNewProduct{}
-	if err := DecodeBody(r.Body, a); err != nil {
-		if err == utils.InvalidRequest {
-			return invalidRequest(w)
-		}
+	if err := DecodeBody(r.Body, &a); err != nil {
+		fmt.Println(err)
 		return err
 	}
 	id, err := parseId(r.PathValue("id"))
+	if err != nil {
+		return err
+	}
 	product, err := u.ProductService.Update(id, &a)
 	if err != nil {
-		if err == utils.NotFound {
-			return notFound(w)
-		}
 		return err
 	}
 	return writeJson(w, http.StatusCreated, product)
