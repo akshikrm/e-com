@@ -95,10 +95,9 @@ func (p *ProductCategoriesModel) Update(id int, updateProductCategory *types.Upd
 }
 
 func (p *ProductCategoriesModel) Delete(id int) error {
-	query := "DELETE FROM product_categories WHERE id=$1"
-
-	if _, err := p.store.Exec(query, id); err != nil {
-		log.Default().Printf("failed to delete product category with id %d due to %s", id, err)
+	query := "UPDATE product_categories set deleted_at=$1 where id=$2"
+	if _, err := p.store.Exec(query, time.Now(), id); err != nil {
+		log.Printf("failed to delete product category with id %d due to %s", id, err)
 		return utils.ServerError
 	}
 	return nil

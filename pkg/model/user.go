@@ -19,13 +19,13 @@ type User struct {
 }
 
 type UserModel struct {
-	DB *sql.DB
+	store *sql.DB
 }
 
 func (m *UserModel) Get() ([]*User, error) {
 	query := `select * from users where role_code != 'admin';`
 
-	rows, err := m.DB.Query(query)
+	rows, err := m.store.Query(query)
 	if err != nil {
 		log.Printf("failed to retrieve user %s", err)
 		return nil, utils.ServerError
@@ -46,7 +46,7 @@ func (m *UserModel) Get() ([]*User, error) {
 func (m *UserModel) GetPasswordByEmail(email string) (*User, error) {
 	query := `select user_id, password, role_code from users inner join profiles on users.id = profiles.user_id where email=$1;`
 
-	row := m.DB.QueryRow(query, email)
+	row := m.store.QueryRow(query, email)
 
 	user := User{}
 	if err := row.Scan(&user.ID, &user.Password, &user.Role); err != nil {
@@ -63,7 +63,7 @@ func (m *UserModel) GetPasswordByEmail(email string) (*User, error) {
 
 func (m *UserModel) GetOne(id int) (*User, error) {
 	query := `select id, role_code, created_at,updated_at from users where id=$1`
-	row := m.DB.QueryRow(query, id)
+	row := m.store.QueryRow(query, id)
 	user := &User{}
 	err := row.Scan(
 		&user.ID,
@@ -82,7 +82,7 @@ func (m *UserModel) GetOne(id int) (*User, error) {
 
 func (m *UserModel) GetUserByEmail(email string) (*User, error) {
 	query := `select * from users where email=$1`
-	row := m.DB.QueryRow(query, email)
+	row := m.store.QueryRow(query, email)
 
 	user, err := ScanRow(row)
 	if err != nil {
@@ -104,7 +104,7 @@ func (m *UserModel) Create(user types.CreateUserRequest) (*User, error) {
 	if user.Role != "" {
 		role = user.Role
 	}
-	row := m.DB.QueryRow(query,
+	row := m.store.QueryRow(query,
 		user.Password,
 		role,
 	)
@@ -121,7 +121,7 @@ func (m *UserModel) Create(user types.CreateUserRequest) (*User, error) {
 
 func (m *UserModel) Update(id int, user types.UpdateUserRequest) error {
 	query := `update users set first_name=$1, last_name=$2, email=$3 where id=$4`
-	result, err := m.DB.Exec(query, user.FirstName, user.LastName, user.Email, id)
+	result, err := m.store.Exec(query, user.FirstName, user.LastName, user.Email, id)
 
 	if err != nil {
 		log.Printf("failed to update user %v due to %s", user, err)
@@ -137,18 +137,10 @@ func (m *UserModel) Update(id int, user types.UpdateUserRequest) error {
 }
 
 func (m *UserModel) Delete(id int) error {
-	query := "delete from users where id=$1"
-	result, err := m.DB.Exec(query, id)
-
-	if err != nil {
+	query := "UPDATE users set deleted_at=$1 where id=$2"
+	if _, err := m.store.Exec(query, time.Now(), id); err != nil {
 		log.Printf("failed to delete %d due to %s", id, err)
-		return utils.ServerError
 	}
-
-	if count, _ := result.RowsAffected(); count == 0 {
-		return utils.NotFound
-	}
-
 	return nil
 }
 
@@ -186,6 +178,6 @@ func ScanRow(row *sql.Row) (*User, error) {
 
 func NewUserModel(store *sql.DB) *UserModel {
 	return &UserModel{
-		DB: store,
+		store: store,
 	}
 }

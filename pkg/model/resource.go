@@ -84,17 +84,11 @@ func (r *ResourceModel) Update(id int, newResource *types.CreateResourceRequest)
 }
 
 func (r *ResourceModel) Delete(id int) error {
-	query := "delete from resources where id=$1"
-	_, err := r.store.Exec(query, id)
-
-	if err == sql.ErrNoRows {
-		return utils.NotFound
-	}
-	if err != nil {
+	query := "UPDATE resources set deleted_at=$1 where id=$2"
+	if _, err := r.store.Exec(query, time.Now(), id); err != nil {
 		log.Printf("failed to delete resource %d due to %s", id, err)
 		return utils.ServerError
 	}
-
 	return nil
 }
 

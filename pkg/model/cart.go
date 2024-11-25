@@ -76,9 +76,9 @@ func (c *CartModel) Update(cid uint, updateCart *types.UpdateCartRequest) (*Cart
 
 func (c *CartModel) Delete(cid uint) error {
 	query := "UPDATE carts set deleted_at=$1 where id=$2"
-	_, err := c.store.Exec(query, time.Now(), cid)
-	if err != nil {
+	if _, err := c.store.Exec(query, time.Now(), cid); err != nil {
 		log.Printf("failed to delete cart item with id %d due to %s", cid, err)
+		return utils.ServerError
 	}
 	return nil
 }

@@ -108,18 +108,11 @@ func (m *ProductModel) GetOne(id int) (*Product, error) {
 }
 
 func (m *ProductModel) Delete(id int) error {
-	query := "delete from products where id=$1"
-	_, err := m.store.Exec(query, id)
-
-	if err == sql.ErrNoRows {
-		return utils.NotFound
-	}
-
-	if err != nil {
+	query := "UPDATE products set deleted_at=$1 where id=$2"
+	if _, err := m.store.Exec(query, time.Now(), id); err != nil {
 		log.Printf("failed to products %d due to %s", id, err)
 		return utils.ServerError
 	}
-
 	return nil
 }
 
