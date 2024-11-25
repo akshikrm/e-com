@@ -4,6 +4,7 @@ import (
 	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
 	"database/sql"
+	"fmt"
 	"log"
 	"time"
 )
@@ -63,6 +64,7 @@ func (p *ProductCategoriesModel) GetOne(id int) (*ProductCategory, error) {
 	row := p.store.QueryRow(query, id)
 	productCategory, err := scanCategoryRow(row)
 	if err != nil {
+		log.Printf("failed to get product category with %s due to %s", id, err)
 		if err == sql.ErrNoRows {
 			return nil, utils.NotFound
 		}
@@ -71,7 +73,27 @@ func (p *ProductCategoriesModel) GetOne(id int) (*ProductCategory, error) {
 	return productCategory, err
 }
 
-func (p *ProductCategoriesModel) Update() {}
+func (p *ProductCategoriesModel) Update(id int, updateProductCategory *types.UpdateProductCategoryRequest) (*ProductCategory, error) {
+	query := "UPDATE product_categories SET name=$1, slug=$2, description=$3, enabled=$4 WHERE id=$5 RETURNING *"
+	row := p.store.QueryRow(
+		query,
+		updateProductCategory.Name,
+		updateProductCategory.Slug,
+		updateProductCategory.Description,
+		updateProductCategory.Enabled,
+		id,
+	)
+	productCategory, err := scanCategoryRow(row)
+	if err != nil {
+		log.Printf("failed to update product category with id %d due to %s", id, err)
+		if err == sql.ErrNoRows {
+			return nil, utils.NotFound
+		}
+		return nil, utils.ServerError
+	}
+	return productCategory, err
+}
+
 func (p *ProductCategoriesModel) Delete() {}
 
 func scanCategoryRow(row *sql.Row) (*ProductCategory, error) {
@@ -110,7 +132,6 @@ func scanCategoryRows(rows *sql.Rows) ([]*ProductCategory, error) {
 		}
 		productsCategories = append(productsCategories, productCategory)
 	}
-
 	return productsCategories, nil
 }
 

@@ -14,6 +14,7 @@ type ProductCateogriesServicer interface {
 	Create(*types.NewProductCategoryRequest) (*model.ProductCategory, error)
 	GetAll() ([]*model.ProductCategory, error)
 	GetOne(int) (*model.ProductCategory, error)
+	Update(int, *types.UpdateProductCategoryRequest) (*model.ProductCategory, error)
 }
 
 type ProductCategoriesApi struct {
@@ -62,6 +63,29 @@ func (s *ProductCategoriesApi) GetOne(ctx context.Context, w http.ResponseWriter
 		return serverError(w)
 	}
 	return writeJson(w, http.StatusOK, productCategories)
+}
+
+func (s *ProductCategoriesApi) Update(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	id, err := parseId(r.PathValue("id"))
+	if err != nil {
+		return invalidId(w)
+	}
+	updateProductCategory := types.UpdateProductCategoryRequest{}
+	if err := DecodeBody(r.Body, &updateProductCategory); err != nil {
+		if err == utils.InvalidRequest {
+			return invalidRequest(w)
+		}
+		return serverError(w)
+	}
+
+	updatedProductCategory, err := s.service.Update(id, &updateProductCategory)
+	if err != nil {
+		if err == utils.NotFound {
+			return notFound(w)
+		}
+		return serverError(w)
+	}
+	return writeJson(w, http.StatusOK, updatedProductCategory)
 }
 
 func NewProductCategoriesApi(storage *db.Storage) *ProductCategoriesApi {

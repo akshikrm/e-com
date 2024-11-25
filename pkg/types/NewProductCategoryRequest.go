@@ -6,3 +6,10 @@ type NewProductCategoryRequest struct {
 	Description string `json:"description"`
 	Enabled     bool   `json:"enabled"`
 }
+
+type UpdateProductCategoryRequest struct {
+	Name        string `json:"name"`
+	Slug        string `json:"slug"`
+	Description string `json:"description"`
+	Enabled     bool   `json:"enabled"`
+}
