@@ -77,7 +77,7 @@ const (
 	CREATE_PERMISSION       = "CREATE TABLE IF NOT EXISTS permissions (id SERIAL PRIMARY KEY, role_code VARCHAR(10) NOT NULL, resource_code VARCHAR(10) NOT NULL, r BOOLEAN DEFAULT false NOT NULL, w BOOLEAN DEFAULT false NOT NULL, u BOOLEAN DEFAULT false NOT NULL, d BOOLEAN DEFAULT false NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL,deleted_at TIMESTAMP DEFAULT NULL, CONSTRAINT fk_role FOREIGN KEY(role_code) REFERENCES roles(code), CONSTRAINT fk_resource FOREIGN KEY(role_code) REFERENCES resources(code))"
 	CREATE_USERS            = "CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, password VARCHAR NOT NULL, role_code VARCHAR(10) DEFAULT user NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL, deleted_at TIMESTAMP DEFAULT NULL, CONSTRAINT fk_role FOREIGN KEY(role_code) REFERENCES roles(code))"
 	CREATE_PROFILES         = "CREATE TABLE IF NOT EXISTS profiles (id SERIAL PRIMARY KEY, user_id int UNIQUE, first_name VARCHAR(50) DEFAULT '' NOT NULL, last_name VARCHAR(50) DEFAULT '' NOT NULL, email VARCHAR(50) UNIQUE DEFAULT '' NOT NULL, pincode VARCHAR(10) DEFAULT '' NOT NULL, address_one VARCHAR(100) DEFAULT '' NOT NULL, address_two VARCHAR(100) DEFAULT '' NOT NULL, phone_number VARCHAR(15) DEFAULT '' NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL, deleted_at TIMESTAMP DEFAULT NULL, CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id))"
-	CREATE_PRODUCT          = "CREATE TABLE IF NOT EXISTS products (id SERIAL PRIMARY KEY, name VARCHAR(30), slug VARCHAR(30), price INTEGER NOT NULL DEFAULT 0, image VARCHAR(100),  description VARCHAR(300) NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL, deleted_at TIMESTAMP DEFAULT NULL)"
+	CREATE_PRODUCT          = "CREATE TABLE IF NOT EXISTS products (id SERIAL PRIMARY KEY, name VARCHAR(30), slug VARCHAR(30), price INTEGER NOT NULL DEFAULT 0, image VARCHAR(100),  description VARCHAR(300) NOT NULL, category_id INTEGER NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL, deleted_at TIMESTAMP DEFAULT NULL, CONSTRAINT fk_category FOREIGN KEY (category_id) REFERENCES product_categories(id))"
 	CREATE_PRODUCT_CATEGORY = "create table if not exists product_categories(id SERIAL PRIMARY KEY, name VARCHAR(30) NOT NULL, slug VARCHAR(30) NOT NULL,enabled BOOLEAN DEFAULT true, description VARCHAR(120) NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL, deleted_at TIMESTAMP DEFAULT NULL)"
 	CREATE_CART             = "CREATE TABLE IF NOT EXISTS carts (id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, product_id INTEGER NOT NULL, quantity INTEGER DEFAULT 1 NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL, deleted_at TIMESTAMP DEFAULT NULL, CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(id), CONSTRAINT fk_product FOREIGN KEY(product_id) REFERENCES products(id))"
 )
@@ -227,9 +227,9 @@ func Init(s *db.Storage) {
 	CreateTable(s.DB, CREATE_PERMISSION, "permissions")
 	CreateTable(s.DB, CREATE_USERS, "users")
 	CreateTable(s.DB, CREATE_PROFILES, "profiles")
+	CreateTable(s.DB, CREATE_PRODUCT_CATEGORY, "product_categories")
 	CreateTable(s.DB, CREATE_PRODUCT, "products")
 	CreateTable(s.DB, CREATE_CART, "carts")
-	CreateTable(s.DB, CREATE_PRODUCT_CATEGORY, "product_categories")
 	log.Println("successfully created all tables")
 
 	CreateUpdatedAtFunction(s.DB)

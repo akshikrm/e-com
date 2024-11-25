@@ -10,6 +10,7 @@ import (
 
 type Product struct {
 	ID          uint       `json:"id"`
+	CategoryID  uint       `json:"category_id"`
 	Name        string     `json:"name"`
 	Slug        string     `json:"slug"`
 	Price       uint       `json:"price"`
@@ -25,13 +26,14 @@ type ProductModel struct {
 }
 
 func (p *ProductModel) Create(product *types.CreateNewProduct) (*Product, error) {
-	query := `INSERT INTO products(name, slug, price, image, description) VALUES ($1, $2, $3, $4, $5) RETURNING *`
+	query := `INSERT INTO products(name, slug, price, image, description, category_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`
 	row := p.store.QueryRow(query,
 		product.Name,
 		product.Slug,
 		product.Price,
 		product.Image,
 		product.Description,
+		product.CategoryID,
 	)
 
 	savedProduct, err := scanProductRow(row)
@@ -46,13 +48,14 @@ func (p *ProductModel) Create(product *types.CreateNewProduct) (*Product, error)
 }
 
 func (p *ProductModel) Update(pid int, product *types.CreateNewProduct) (*Product, error) {
-	query := "UPDATE products SET name=$1, slug=$2, price=$3, image=$4, description=$5 WHERE id=$6 AND deleted_at IS NULL RETURNING *"
+	query := "UPDATE products SET name=$1, slug=$2, price=$3, image=$4, description=$5, category_id=$6 WHERE id=$7 AND deleted_at IS NULL RETURNING *"
 	row := p.store.QueryRow(query,
 		product.Name,
 		product.Slug,
 		product.Price,
 		product.Image,
 		product.Description,
+		product.CategoryID,
 		pid,
 	)
 
@@ -127,6 +130,7 @@ func scanProductRows(rows *sql.Rows) ([]*Product, error) {
 			&product.Price,
 			&product.Image,
 			&product.Description,
+			&product.CategoryID,
 			&product.CreatedAt,
 			&product.UpdatedAt,
 			&product.DeletedAt,
@@ -148,6 +152,7 @@ func scanProductRow(rows *sql.Row) (*Product, error) {
 		&product.Price,
 		&product.Image,
 		&product.Description,
+		&product.CategoryID,
 		&product.CreatedAt,
 		&product.UpdatedAt,
 		&product.DeletedAt,
