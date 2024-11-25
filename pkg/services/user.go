@@ -4,6 +4,7 @@ import (
 	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
+	"fmt"
 	"log"
 )
 
@@ -89,7 +90,8 @@ func (u *UserService) Create(user types.CreateUserRequest) (string, error) {
 	if _, err := u.profileModel.Create(&newUserProfile); err != nil {
 		return "", err
 	}
-	token, err := utils.CreateJwt(savedUser.ID, user.Role)
+	fmt.Println(savedUser)
+	token, err := utils.CreateJwt(savedUser.ID, savedUser.Role)
 	if err != nil {
 		return "", err
 	}
