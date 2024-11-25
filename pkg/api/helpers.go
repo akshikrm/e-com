@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -55,7 +56,6 @@ func RouteHandler(f apiFunc) http.HandlerFunc {
 
 		if err := f(w, r); err != nil {
 			handleError(w, err)
-			// writeError(w, http.StatusInternalServerError, err)
 		}
 	}
 }
@@ -98,6 +98,7 @@ func writeError(w http.ResponseWriter, status int, err error) error {
 func parseId(id string) (int, error) {
 	parsedId, err := strconv.Atoi(id)
 	if err != nil {
+		log.Printf("failed to convert param %s to integer", id)
 		return 0, utils.InvalidParam
 	}
 	return parsedId, nil
@@ -105,6 +106,7 @@ func parseId(id string) (int, error) {
 
 func DecodeBody(body io.ReadCloser, a any) error {
 	if err := json.NewDecoder(body).Decode(a); err != nil {
+		log.Printf("failed to decode body %v", body)
 		if err == io.EOF {
 			return utils.InvalidRequest
 		}

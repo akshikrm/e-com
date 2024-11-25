@@ -5,10 +5,7 @@ import (
 	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/services"
 	"akshidas/e-com/pkg/types"
-	"akshidas/e-com/pkg/utils"
 	"context"
-	"encoding/json"
-	"io"
 	"net/http"
 )
 
@@ -36,13 +33,10 @@ func (c *CartApi) GetAll(ctx context.Context, w http.ResponseWriter, r *http.Req
 func (c *CartApi) GetOne(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	cid, err := parseId(r.PathValue("id"))
 	if err != nil {
-		return invalidId(w)
+		return err
 	}
 	cart, err := c.cartService.GetOne(uint(cid))
 	if err != nil {
-		if err == utils.NotFound {
-			return notFound(w)
-		}
 		return err
 	}
 	return writeJson(w, http.StatusOK, cart)
@@ -50,10 +44,7 @@ func (c *CartApi) GetOne(ctx context.Context, w http.ResponseWriter, r *http.Req
 
 func (c *CartApi) Create(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	newCart := types.CreateCartRequest{}
-	if err := json.NewDecoder(r.Body).Decode(&newCart); err != nil {
-		if err == io.EOF {
-			return invalidRequest(w)
-		}
+	if err := DecodeBody(r.Body, &newCart); err != nil {
 		return err
 	}
 	userID := ctx.Value("userID")
@@ -67,22 +58,13 @@ func (c *CartApi) Create(ctx context.Context, w http.ResponseWriter, r *http.Req
 func (c *CartApi) Update(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	cid, err := parseId(r.PathValue("id"))
 	if err != nil {
-		return invalidId(w)
+		return err
 	}
 	updatedCart := types.UpdateCartRequest{}
-	if err := json.NewDecoder(r.Body).Decode(&updatedCart); err != nil {
-		if err == io.EOF {
-			return invalidRequest(w)
-		}
-		if err == utils.NotFound {
-			return notFound(w)
-		}
+	if err := DecodeBody(r.Body, &updatedCart); err != nil {
 		return err
 	}
 	cart, err := c.cartService.Update(uint(cid), &updatedCart)
-	if err == utils.NotFound {
-		return notFound(w)
-	}
 	if err != nil {
 		return err
 	}
@@ -92,12 +74,9 @@ func (c *CartApi) Update(ctx context.Context, w http.ResponseWriter, r *http.Req
 func (c *CartApi) Delete(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	id, err := parseId(r.PathValue("id"))
 	if err != nil {
-		return invalidId(w)
+		return err
 	}
 	if err := c.cartService.Delete(uint(id)); err != nil {
-		if err == utils.NotFound {
-			return notFound(w)
-		}
 		return err
 	}
 	return writeJson(w, http.StatusOK, "deleted successfully")

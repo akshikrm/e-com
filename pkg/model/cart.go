@@ -23,7 +23,7 @@ type CartModel struct {
 }
 
 func (c *CartModel) GetAll(userID uint) ([]*Cart, error) {
-	query := "SELECT * FROM carts where user_id=$1"
+	query := "SELECT * FROM carts WHERE user_id=$1 AND deleted_at IS NULL"
 	rows, err := c.store.Query(query, userID)
 	if err == sql.ErrNoRows {
 		return nil, utils.NotFound
@@ -36,7 +36,7 @@ func (c *CartModel) GetAll(userID uint) ([]*Cart, error) {
 }
 
 func (c *CartModel) GetOne(cid uint) (*Cart, error) {
-	query := "SELECT * FROM carts WHERE id=$1"
+	query := "SELECT * FROM carts WHERE id=$1 AND deleted_at IS NULL"
 	row := c.store.QueryRow(query, cid)
 	cart, err := scanNewCartRow(row)
 	if err == sql.ErrNoRows {
@@ -61,7 +61,7 @@ func (c *CartModel) Create(newCart *types.CreateCartRequest) (*Cart, error) {
 }
 
 func (c *CartModel) Update(cid uint, updateCart *types.UpdateCartRequest) (*Cart, error) {
-	query := "UPDATE carts SET quantity=$1 WHERE id=$2 RETURNING *"
+	query := "UPDATE carts SET quantity=$1 WHERE id=$2 AND deleted_at IS NULL RETURNING *"
 	row := c.store.QueryRow(query, updateCart.Quantity, cid)
 	cart, err := scanNewCartRow(row)
 	if err == sql.ErrNoRows {
@@ -75,7 +75,7 @@ func (c *CartModel) Update(cid uint, updateCart *types.UpdateCartRequest) (*Cart
 }
 
 func (c *CartModel) Delete(cid uint) error {
-	query := "UPDATE carts set deleted_at=$1 where id=$2"
+	query := "UPDATE carts set deleted_at=$1 where id=$2 AND deleted_at IS NULL"
 	if _, err := c.store.Exec(query, time.Now(), cid); err != nil {
 		log.Printf("failed to delete cart item with id %d due to %s", cid, err)
 		return utils.ServerError
