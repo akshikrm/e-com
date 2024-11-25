@@ -9,12 +9,13 @@ import (
 )
 
 type Role struct {
-	ID          int       `json:"id"`
-	Code        string    `json:"code"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID          int        `json:"id"`
+	Code        string     `json:"code"`
+	Name        string     `json:"name"`
+	Description string     `json:"description"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
+	DeletedAt   *time.Time `json:"deleted_at"`
 }
 
 type RoleModel struct {
@@ -108,6 +109,7 @@ func scanRows(rows *sql.Rows) ([]*Role, error) {
 			&role.Description,
 			&role.CreatedAt,
 			&role.UpdatedAt,
+			&role.DeletedAt,
 		)
 		if err != nil {
 			return nil, err
@@ -128,6 +130,7 @@ func scanRow(row *sql.Row) (*Role, error) {
 		&role.Description,
 		&role.CreatedAt,
 		&role.UpdatedAt,
+		&role.DeletedAt,
 	)
 
 	if err == sql.ErrNoRows {

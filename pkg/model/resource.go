@@ -9,12 +9,13 @@ import (
 )
 
 type Resource struct {
-	ID          int       `json:"id"`
-	Code        string    `json:"code"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID          int        `json:"id"`
+	Code        string     `json:"code"`
+	Name        string     `json:"name"`
+	Description string     `json:"description"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
+	DeletedAt   *time.Time `json:"deleted_at"`
 }
 
 type ResourceModel struct {
@@ -108,6 +109,7 @@ func scanResourceRows(rows *sql.Rows) ([]*Resource, error) {
 			&resource.Description,
 			&resource.CreatedAt,
 			&resource.UpdatedAt,
+			&resource.DeletedAt,
 		)
 		if err != nil {
 			return nil, err
@@ -128,6 +130,7 @@ func scanResourceRow(row *sql.Row) (*Resource, error) {
 		&resource.Description,
 		&resource.CreatedAt,
 		&resource.UpdatedAt,
+		&resource.DeletedAt,
 	)
 
 	if err == sql.ErrNoRows {

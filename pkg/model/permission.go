@@ -18,6 +18,7 @@ type Permission struct {
 	D            bool      `json:"d"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
+	DeletedAt    time.Time `json:"deleted_at"`
 }
 
 type PermissionModel struct {
@@ -117,6 +118,7 @@ func scanPermissionRows(rows *sql.Rows) ([]*Permission, error) {
 			&permission.D,
 			&permission.CreatedAt,
 			&permission.UpdatedAt,
+			&permission.DeletedAt,
 		)
 		if err != nil {
 			return nil, err
@@ -140,6 +142,7 @@ func scanPermissionRow(row *sql.Row) (*Permission, error) {
 		&permission.D,
 		&permission.CreatedAt,
 		&permission.UpdatedAt,
+		&permission.DeletedAt,
 	)
 
 	if err == sql.ErrNoRows {

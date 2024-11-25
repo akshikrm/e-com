@@ -3,8 +3,10 @@ package api
 import (
 	"akshidas/e-com/pkg/utils"
 	"context"
-	"github.com/golang-jwt/jwt/v5"
+	"fmt"
 	"net/http"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type apiFuncWithContext func(context.Context, http.ResponseWriter, *http.Request) error
@@ -34,6 +36,7 @@ func (m *MiddleWares) IsAuthenticated(ctx context.Context, f apiFuncWithContext)
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
 			id := int(claims["sub"].(float64))
 			user, err := m.userService.GetOne(id)
+			fmt.Println(err)
 			if err != nil {
 				return accessDenied(w)
 			}

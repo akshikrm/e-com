@@ -9,13 +9,14 @@ import (
 )
 
 type ProductCategory struct {
-	ID          uint      `json:"id"`
-	Name        string    `json:"name"`
-	Slug        string    `json:"slug"`
-	Description string    `json:"description"`
-	Enabled     bool      `json:"enabled"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID          uint       `json:"id"`
+	Name        string     `json:"name"`
+	Slug        string     `json:"slug"`
+	Description string     `json:"description"`
+	Enabled     bool       `json:"enabled"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
+	DeletedAt   *time.Time `json:"deleted_at"`
 }
 
 type ProductCategoriesModel struct {
@@ -113,6 +114,7 @@ func scanCategoryRow(row *sql.Row) (*ProductCategory, error) {
 		&productCategory.Description,
 		&productCategory.CreatedAt,
 		&productCategory.UpdatedAt,
+		&productCategory.DeletedAt,
 	)
 	if err != nil {
 		return nil, err
@@ -133,6 +135,7 @@ func scanCategoryRows(rows *sql.Rows) ([]*ProductCategory, error) {
 			&productCategory.Description,
 			&productCategory.CreatedAt,
 			&productCategory.UpdatedAt,
+			&productCategory.DeletedAt,
 		)
 		if err != nil {
 			return nil, err

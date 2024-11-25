@@ -15,6 +15,7 @@ type User struct {
 	Role      string    `json:"role_code"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	DeletedAt time.Time `json:"deleted_at"`
 }
 
 type UserModel struct {
@@ -61,15 +62,21 @@ func (m *UserModel) GetPasswordByEmail(email string) (*User, error) {
 }
 
 func (m *UserModel) GetOne(id int) (*User, error) {
-	query := `select * from users where id=$1`
+	query := `select id, role_code, created_at,updated_at from users where id=$1`
 	row := m.DB.QueryRow(query, id)
+	user := &User{}
+	err := row.Scan(
+		&user.ID,
+		&user.Role,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+		&user.DeletedAt,
+	)
 
-	user, err := ScanRow(row)
 	if err != nil {
 		log.Printf("user with id %d not found due to %s", id, err)
 		return nil, utils.NotFound
 	}
-
 	return user, nil
 }
 
@@ -153,6 +160,7 @@ func ScanRows(rows *sql.Rows) (*User, error) {
 		&user.Role,
 		&user.CreatedAt,
 		&user.UpdatedAt,
+		&user.DeletedAt,
 	)
 
 	if err != nil {
@@ -170,6 +178,7 @@ func ScanRow(row *sql.Row) (*User, error) {
 		&user.Role,
 		&user.CreatedAt,
 		&user.UpdatedAt,
+		&user.DeletedAt,
 	)
 
 	return user, err

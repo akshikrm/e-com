@@ -4,18 +4,18 @@ import (
 	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
 	"database/sql"
-	"fmt"
 	"log"
 	"time"
 )
 
 type Cart struct {
-	ID        uint      `json:"id"`
-	UserID    uint      `json:"user_id"`
-	ProductID uint      `json:"product_id"`
-	Quantity  uint      `json:"quantity"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID        uint       `json:"id"`
+	UserID    uint       `json:"user_id"`
+	ProductID uint       `json:"product_id"`
+	Quantity  uint       `json:"quantity"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `json:"deleted_at"`
 }
 
 type CartModel struct {
@@ -62,7 +62,6 @@ func (c *CartModel) Create(newCart *types.CreateCartRequest) (*Cart, error) {
 
 func (c *CartModel) Update(cid uint, updateCart *types.UpdateCartRequest) (*Cart, error) {
 	query := "UPDATE carts SET quantity=$1 WHERE id=$2 RETURNING *"
-	fmt.Print(cid, updateCart)
 	row := c.store.QueryRow(query, updateCart.Quantity, cid)
 	cart, err := scanNewCartRow(row)
 	if err == sql.ErrNoRows {
@@ -76,8 +75,8 @@ func (c *CartModel) Update(cid uint, updateCart *types.UpdateCartRequest) (*Cart
 }
 
 func (c *CartModel) Delete(cid uint) error {
-	query := "DELETE FROM carts WHERE id=$1"
-	_, err := c.store.Exec(query, cid)
+	query := "UPDATE carts set deleted_at=$1 where id=$2"
+	_, err := c.store.Exec(query, time.Now(), cid)
 	if err != nil {
 		log.Printf("failed to delete cart item with id %d due to %s", cid, err)
 	}
@@ -93,6 +92,7 @@ func scanNewCartRow(row *sql.Row) (*Cart, error) {
 		&cart.Quantity,
 		&cart.CreatedAt,
 		&cart.UpdatedAt,
+		&cart.DeletedAt,
 	)
 	if err != nil {
 		return nil, err
@@ -111,6 +111,7 @@ func scanCartRows(rows *sql.Rows) ([]*Cart, error) {
 			&cart.Quantity,
 			&cart.CreatedAt,
 			&cart.UpdatedAt,
+			&cart.DeletedAt,
 		)
 		if err != nil {
 			log.Printf("failed to get all products due to %s", err)

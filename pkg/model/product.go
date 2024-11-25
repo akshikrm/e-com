@@ -9,14 +9,15 @@ import (
 )
 
 type Product struct {
-	ID          uint      `json:"id"`
-	Name        string    `json:"name"`
-	Slug        string    `json:"slug"`
-	Price       uint      `json:"price"`
-	Image       string    `json:"image"`
-	Description string    `json:"description"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID          uint       `json:"id"`
+	Name        string     `json:"name"`
+	Slug        string     `json:"slug"`
+	Price       uint       `json:"price"`
+	Image       string     `json:"image"`
+	Description string     `json:"description"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
+	DeletedAt   *time.Time `json:"deleted_at"`
 }
 
 type ProductModel struct {
@@ -135,6 +136,7 @@ func scanProductRows(rows *sql.Rows) ([]*Product, error) {
 			&product.Description,
 			&product.CreatedAt,
 			&product.UpdatedAt,
+			&product.DeletedAt,
 		)
 		if err != nil {
 			return nil, err
@@ -155,6 +157,7 @@ func scanProductRow(rows *sql.Row) (*Product, error) {
 		&product.Description,
 		&product.CreatedAt,
 		&product.UpdatedAt,
+		&product.DeletedAt,
 	)
 	if err != nil {
 		return nil, err
