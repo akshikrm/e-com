@@ -1,9 +1,11 @@
 package api
 
 import (
+	"akshidas/e-com/pkg/utils"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 )
@@ -36,6 +38,10 @@ func invalidRequest(w http.ResponseWriter) error {
 
 func notFound(w http.ResponseWriter) error {
 	return writeError(w, http.StatusNotFound, errors.New("not found"))
+}
+
+func serverError(w http.ResponseWriter) error {
+	return writeError(w, http.StatusInternalServerError, errors.New("something went wrong"))
 }
 
 func RouteHandler(f apiFunc) http.HandlerFunc {
@@ -76,4 +82,14 @@ func parseId(id string) (int, error) {
 		return 0, fmt.Errorf("invalid id")
 	}
 	return parsedId, nil
+}
+
+func DecodeBody(body io.ReadCloser, a any) error {
+	if err := json.NewDecoder(body).Decode(a); err != nil {
+		if err == io.EOF {
+			return utils.InvalidRequest
+		}
+		return err
+	}
+	return nil
 }

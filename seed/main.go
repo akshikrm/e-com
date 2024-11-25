@@ -78,6 +78,8 @@ const (
 	CREATE_USERS      = "CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, password VARCHAR NOT NULL, role_code VARCHAR(10) DEFAULT user NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL, CONSTRAINT fk_role FOREIGN KEY(role_code) REFERENCES roles(code))"
 	CREATE_PROFILES   = "CREATE TABLE IF NOT EXISTS profiles (id SERIAL PRIMARY KEY, user_id int UNIQUE, first_name VARCHAR(50) DEFAULT '' NOT NULL, last_name VARCHAR(50) DEFAULT '' NOT NULL, email VARCHAR(50) UNIQUE DEFAULT '' NOT NULL, pincode VARCHAR(10) DEFAULT '' NOT NULL, address_one VARCHAR(100) DEFAULT '' NOT NULL, address_two VARCHAR(100) DEFAULT '' NOT NULL, phone_number VARCHAR(15) DEFAULT '' NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL, CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id))"
 	CREATE_PRODUCT    = "CREATE TABLE IF NOT EXISTS products (id SERIAL PRIMARY KEY, name VARCHAR(30), slug VARCHAR(30), price INTEGER NOT NULL DEFAULT 0, image VARCHAR(100),  description VARCHAR(300) NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL)"
+
+	CREATE_PRODUCT_CATEGORY = "create table if not exists product_categories(id SERIAL PRIMARY KEY, name VARCHAR(30) NOT NULL, slug VARCHAR(30) NOT NULL,enabled BOOLEAN DEFAULT true, description VARCHAR(120) NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL)"
 )
 
 func dropTables(store *sql.DB, table string) {
@@ -126,7 +128,7 @@ func NukeDB(s *db.Storage) {
 
 func seedRolesFunc(s *db.Storage, role *types.CreateRoleRequest) {
 	log.Println("seeding roles")
-	roleService := services.NewRoleService(s.DB)
+	roleService := services.NewRoleService(s)
 	err := roleService.Create(role)
 	if err != nil {
 		log.Printf("Failed to seed role %s due to %s\n", role.Name, err)
@@ -136,7 +138,7 @@ func seedRolesFunc(s *db.Storage, role *types.CreateRoleRequest) {
 
 func seedResourcesFunc(s *db.Storage) {
 	log.Println("seeding Resource")
-	resourceService := services.NewResourceService(s.DB)
+	resourceService := services.NewResourceService(s)
 	resource := types.CreateResourceRequest{
 		Name:        "User",
 		Code:        "user",
@@ -151,7 +153,7 @@ func seedResourcesFunc(s *db.Storage) {
 
 func seedPermissionFunc(s *db.Storage) {
 	log.Println("seeding permission")
-	permissionService := services.NewPermissionService(s.DB)
+	permissionService := services.NewPermissionService(s)
 	permission := types.CreateNewPermission{
 		RoleCode:     "admin",
 		ResourceCode: "user",
@@ -222,6 +224,7 @@ func Init(s *db.Storage) {
 	CreateTable(s.DB, CREATE_USERS, "users")
 	CreateTable(s.DB, CREATE_PROFILES, "profiles")
 	CreateTable(s.DB, CREATE_PRODUCT, "products")
+	CreateTable(s.DB, CREATE_PRODUCT_CATEGORY, "product_categories")
 	log.Println("successfully created all tables")
 
 	CreateUpdatedAtFunction(s.DB)
@@ -233,6 +236,7 @@ func Init(s *db.Storage) {
 	CreateUpdatedAtTrigger(s.DB, "roles")
 	CreateUpdatedAtTrigger(s.DB, "resources")
 	CreateUpdatedAtTrigger(s.DB, "products")
+	CreateUpdatedAtTrigger(s.DB, "product_categories")
 	log.Println("successfully created all triggers")
 
 	adminRole := types.CreateRoleRequest{
