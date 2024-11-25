@@ -70,7 +70,6 @@ func (m *UserModel) GetOne(id int) (*User, error) {
 		&user.Role,
 		&user.CreatedAt,
 		&user.UpdatedAt,
-		&user.DeletedAt,
 	)
 
 	if err != nil {

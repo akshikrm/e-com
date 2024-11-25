@@ -8,7 +8,6 @@ import (
 	"akshidas/e-com/pkg/utils"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -37,12 +36,12 @@ func (u *ProductApi) GetAll(ctx context.Context, w http.ResponseWriter, r *http.
 func (u *ProductApi) GetOne(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	id, err := parseId(r.PathValue("id"))
 	if err != nil {
-		return fmt.Errorf("invalid id")
+		return invalidId(w)
 	}
 	foundProduct, err := u.ProductService.GetOne(id)
 	if err != nil {
 		if err == utils.NotFound {
-			return writeError(w, http.StatusNotFound, fmt.Errorf("product not found"))
+			return notFound(w)
 		}
 		return err
 	}
@@ -56,7 +55,7 @@ func (u *ProductApi) Delete(ctx context.Context, w http.ResponseWriter, r *http.
 	}
 	if err := u.ProductService.Delete(id); err != nil {
 		if err == utils.NotFound {
-			return writeError(w, http.StatusNotFound, err)
+			return notFound(w)
 		}
 		return err
 	}
@@ -67,7 +66,7 @@ func (u *ProductApi) Create(ctx context.Context, w http.ResponseWriter, r *http.
 	a := &types.CreateNewProduct{}
 	if err := json.NewDecoder(r.Body).Decode(a); err != nil {
 		if err == io.EOF {
-			return errors.New("invalid request")
+			return invalidRequest(w)
 		}
 		return err
 	}
@@ -80,15 +79,18 @@ func (u *ProductApi) Create(ctx context.Context, w http.ResponseWriter, r *http.
 
 func (u *ProductApi) Update(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	a := types.CreateNewProduct{}
-	if err := json.NewDecoder(r.Body).Decode(&a); err != nil {
-		if err == io.EOF {
-			return errors.New("invalid request")
+	if err := DecodeBody(r.Body, a); err != nil {
+		if err == utils.InvalidRequest {
+			return invalidRequest(w)
 		}
 		return err
 	}
 	id, err := parseId(r.PathValue("id"))
 	product, err := u.ProductService.Update(id, &a)
 	if err != nil {
+		if err == utils.NotFound {
+			return notFound(w)
+		}
 		return err
 	}
 	return writeJson(w, http.StatusCreated, product)

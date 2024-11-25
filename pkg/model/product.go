@@ -46,7 +46,7 @@ func (p *ProductModel) Create(product *types.CreateNewProduct) (*Product, error)
 }
 
 func (p *ProductModel) Update(pid int, product *types.CreateNewProduct) (*Product, error) {
-	query := `UPDATE products SET name=$1, slug=$2, price=$3, image=$4, description=$5 WHERE id=$6 RETURNING *`
+	query := "UPDATE products SET name=$1, slug=$2, price=$3, image=$4, description=$5 WHERE id=$6 AND deleted_at IS NULL RETURNING *"
 	row := p.store.QueryRow(query,
 		product.Name,
 		product.Slug,
@@ -69,7 +69,7 @@ func (p *ProductModel) Update(pid int, product *types.CreateNewProduct) (*Produc
 }
 
 func (p *ProductModel) GetAll() ([]*Product, error) {
-	query := "SELECT * FROM products;"
+	query := "SELECT * FROM products where deleted_at IS NULL;"
 	rows, err := p.store.Query(query)
 
 	if err == sql.ErrNoRows {
@@ -91,7 +91,7 @@ func (p *ProductModel) GetAll() ([]*Product, error) {
 }
 
 func (m *ProductModel) GetOne(id int) (*Product, error) {
-	query := `select * from products where id=$1`
+	query := "SELECT * FROM products WHERE id=$1 AND deleted_at IS NULL"
 	row := m.store.QueryRow(query, id)
 
 	product, err := scanProductRow(row)
@@ -108,7 +108,7 @@ func (m *ProductModel) GetOne(id int) (*Product, error) {
 }
 
 func (m *ProductModel) Delete(id int) error {
-	query := "UPDATE products set deleted_at=$1 where id=$2"
+	query := "UPDATE products SET deleted_at=$1 WHERE id=$2"
 	if _, err := m.store.Exec(query, time.Now(), id); err != nil {
 		log.Printf("failed to products %d due to %s", id, err)
 		return utils.ServerError
