@@ -100,7 +100,6 @@ func (p *ProductCategoriesModel) Delete(id int) error {
 		log.Default().Printf("failed to delete product category with id %d due to %s", id, err)
 		return utils.ServerError
 	}
-
 	return nil
 }
 
