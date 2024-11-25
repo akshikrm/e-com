@@ -8,6 +8,7 @@ import (
 type ProductCategoriesModeler interface {
 	Create(*types.NewProductCategoryRequest) (*model.ProductCategory, error)
 	GetAll() ([]*model.ProductCategory, error)
+	GetOne(int) (*model.ProductCategory, error)
 }
 
 type ProductCategoryService struct {
@@ -20,6 +21,10 @@ func (p *ProductCategoryService) Create(newCategory *types.NewProductCategoryReq
 
 func (p *ProductCategoryService) GetAll() ([]*model.ProductCategory, error) {
 	return p.model.GetAll()
+}
+
+func (p *ProductCategoryService) GetOne(id int) (*model.ProductCategory, error) {
+	return p.model.GetOne(id)
 }
 
 func NewProductCategoryService(model ProductCategoriesModeler) *ProductCategoryService {

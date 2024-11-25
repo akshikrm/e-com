@@ -43,7 +43,6 @@ func (p *ProductCategoriesModel) Create(newCategory *types.NewProductCategoryReq
 func (p *ProductCategoriesModel) GetAll() ([]*ProductCategory, error) {
 	query := "SELECT * FROM  product_categories"
 	rows, err := p.store.Query(query)
-
 	if err == sql.ErrNoRows {
 		return nil, utils.NotFound
 	}
@@ -51,18 +50,27 @@ func (p *ProductCategoriesModel) GetAll() ([]*ProductCategory, error) {
 		log.Printf("failed to get product_categories due to %s", err)
 		return nil, utils.ServerError
 	}
-
 	productsCategories, err := scanCategoryRows(rows)
 	if err != nil {
 		log.Printf("failed to get all products due to %s", err)
 		return nil, utils.ServerError
 	}
-
 	return productsCategories, nil
-
 }
 
-func (p *ProductCategoriesModel) GetOne() {}
+func (p *ProductCategoriesModel) GetOne(id int) (*ProductCategory, error) {
+	query := "SELECT * FROM product_categories WHERE id=$1"
+	row := p.store.QueryRow(query, id)
+	productCategory, err := scanCategoryRow(row)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, utils.NotFound
+		}
+		return nil, utils.ServerError
+	}
+	return productCategory, err
+}
+
 func (p *ProductCategoriesModel) Update() {}
 func (p *ProductCategoriesModel) Delete() {}
 

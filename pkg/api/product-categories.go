@@ -13,6 +13,7 @@ import (
 type ProductCateogriesServicer interface {
 	Create(*types.NewProductCategoryRequest) (*model.ProductCategory, error)
 	GetAll() ([]*model.ProductCategory, error)
+	GetOne(int) (*model.ProductCategory, error)
 }
 
 type ProductCategoriesApi struct {
@@ -39,6 +40,21 @@ func (s *ProductCategoriesApi) Create(ctx context.Context, w http.ResponseWriter
 
 func (s *ProductCategoriesApi) GetAll(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	productCategories, err := s.service.GetAll()
+	if err != nil {
+		if err == utils.NotFound {
+			return notFound(w)
+		}
+		return serverError(w)
+	}
+	return writeJson(w, http.StatusOK, productCategories)
+}
+
+func (s *ProductCategoriesApi) GetOne(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	id, err := parseId(r.PathValue("id"))
+	if err != nil {
+		return invalidId(w)
+	}
+	productCategories, err := s.service.GetOne(id)
 	if err != nil {
 		if err == utils.NotFound {
 			return notFound(w)
