@@ -6,7 +6,7 @@ import (
 )
 
 type ProductModeler interface {
-	GetAll() ([]*model.Product, error)
+	GetAll() ([]*types.ProductsList, error)
 	GetOne(int) (*model.Product, error)
 	Create(*types.CreateNewProduct) (*model.Product, error)
 	Update(int, *types.CreateNewProduct) (*model.Product, error)
@@ -17,7 +17,7 @@ type ProductService struct {
 	productModel ProductModeler
 }
 
-func (r *ProductService) Get() ([]*model.Product, error) {
+func (r *ProductService) Get() ([]*types.ProductsList, error) {
 	return r.productModel.GetAll()
 }
 

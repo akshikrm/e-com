@@ -11,7 +11,7 @@ import (
 )
 
 type ProductServicer interface {
-	Get() ([]*model.Product, error)
+	Get() ([]*types.ProductsList, error)
 	GetOne(int) (*model.Product, error)
 	Create(*types.CreateNewProduct) error
 	Update(int, *types.CreateNewProduct) (*model.Product, error)

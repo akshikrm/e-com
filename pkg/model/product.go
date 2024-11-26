@@ -71,8 +71,8 @@ func (p *ProductModel) Update(pid int, product *types.CreateNewProduct) (*Produc
 	return savedProduct, nil
 }
 
-func (p *ProductModel) GetAll() ([]*Product, error) {
-	query := "SELECT * FROM products where deleted_at IS NULL;"
+func (p *ProductModel) GetAll() ([]*types.ProductsList, error) {
+	query := "SELECT p.id, p.name, p.slug, p.price, p.image, p.description, c.id as c_id, c.name as c_name,c.slug as c_slug,c.description as c_description FROM products p INNER JOIN product_categories c ON p.category_id=c.id AND c.enabled='t' where p.deleted_at IS NULL;"
 	rows, err := p.store.Query(query)
 
 	if err == sql.ErrNoRows {
@@ -84,12 +84,27 @@ func (p *ProductModel) GetAll() ([]*Product, error) {
 		return nil, utils.ServerError
 	}
 
-	products, err := scanProductRows(rows)
-	if err != nil {
-		log.Printf("failed to get all products due to %s", err)
-		return nil, utils.ServerError
+	products := []*types.ProductsList{}
+	for rows.Next() {
+		product := types.ProductsList{}
+		err := rows.Scan(
+			&product.ID,
+			&product.Name,
+			&product.Slug,
+			&product.Price,
+			&product.Image,
+			&product.Description,
+			&product.Category.ID,
+			&product.Category.Name,
+			&product.Category.Slug,
+			&product.Category.Description,
+		)
+		if err != nil {
+			log.Printf("failed to scan products due to %s", err)
+			return nil, utils.ServerError
+		}
+		products = append(products, &product)
 	}
-
 	return products, nil
 }
 
