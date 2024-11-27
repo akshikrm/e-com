@@ -4,8 +4,9 @@ import (
 	"akshidas/e-com/pkg/types"
 )
 
-type ProductCategoriesModeler interface {
+type ProductCategoriesStorager interface {
 	Create(*types.NewProductCategoryRequest) (*types.ProductCategory, error)
+	GetNames() ([]*types.ProductCategoryName, error)
 	GetAll() ([]*types.ProductCategory, error)
 	GetOne(int) (*types.ProductCategory, error)
 	Update(int, *types.UpdateProductCategoryRequest) (*types.ProductCategory, error)
@@ -13,31 +14,34 @@ type ProductCategoriesModeler interface {
 }
 
 type ProductCategoryService struct {
-	model ProductCategoriesModeler
+	storage ProductCategoriesStorager
 }
 
 func (p *ProductCategoryService) Create(newCategory *types.NewProductCategoryRequest) (*types.ProductCategory, error) {
-	return p.model.Create(newCategory)
+	return p.storage.Create(newCategory)
 }
 
+func (p *ProductCategoryService) GetNames() ([]*types.ProductCategoryName, error) {
+	return p.storage.GetNames()
+}
 func (p *ProductCategoryService) GetAll() ([]*types.ProductCategory, error) {
-	return p.model.GetAll()
+	return p.storage.GetAll()
 }
 
 func (p *ProductCategoryService) GetOne(id int) (*types.ProductCategory, error) {
-	return p.model.GetOne(id)
+	return p.storage.GetOne(id)
 }
 
 func (p *ProductCategoryService) Update(id int, updateProductCategory *types.UpdateProductCategoryRequest) (*types.ProductCategory, error) {
-	return p.model.Update(id, updateProductCategory)
+	return p.storage.Update(id, updateProductCategory)
 }
 
 func (p *ProductCategoryService) Delete(id int) error {
-	return p.model.Delete(id)
+	return p.storage.Delete(id)
 }
 
-func NewProductCategoryService(model ProductCategoriesModeler) *ProductCategoryService {
+func NewProductCategoryService(storage ProductCategoriesStorager) *ProductCategoryService {
 	return &ProductCategoryService{
-		model: model,
+		storage: storage,
 	}
 }

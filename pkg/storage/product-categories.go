@@ -30,6 +30,34 @@ func (p *ProductCategoriesStorage) Create(newCategory *types.NewProductCategoryR
 
 }
 
+func (p *ProductCategoriesStorage) GetNames() ([]*types.ProductCategoryName, error) {
+	query := "SELECT id, name, slug FROM  product_categories WHERE deleted_at IS NULL AND enabled='t'"
+	rows, err := p.store.Query(query)
+	if err == sql.ErrNoRows {
+		return nil, utils.NotFound
+	}
+	if err != nil {
+		log.Printf("failed to get product_categories due to %s", err)
+		return nil, utils.ServerError
+	}
+	productsCategories := []*types.ProductCategoryName{}
+
+	for rows.Next() {
+		productCategory := &types.ProductCategoryName{}
+		err := rows.Scan(
+			&productCategory.ID,
+			&productCategory.Name,
+			&productCategory.Slug,
+		)
+		if err != nil {
+			log.Printf("failed to scan category due to %s", err)
+			return nil, utils.ServerError
+		}
+		productsCategories = append(productsCategories, productCategory)
+	}
+	return productsCategories, nil
+}
+
 func (p *ProductCategoriesStorage) GetAll() ([]*types.ProductCategory, error) {
 	query := "SELECT * FROM  product_categories WHERE deleted_at IS NULL"
 	rows, err := p.store.Query(query)

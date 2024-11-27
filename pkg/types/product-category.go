@@ -16,6 +16,12 @@ type UpdateProductCategoryRequest struct {
 	Enabled     bool   `json:"enabled"`
 }
 
+type ProductCategoryName struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
+	Slug string `json:"slug"`
+}
+
 type ProductCategory struct {
 	ID          uint       `json:"id"`
 	Name        string     `json:"name"`

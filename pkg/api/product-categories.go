@@ -12,6 +12,7 @@ import (
 type ProductCateogriesServicer interface {
 	Create(*types.NewProductCategoryRequest) (*types.ProductCategory, error)
 	GetAll() ([]*types.ProductCategory, error)
+	GetNames() ([]*types.ProductCategoryName, error)
 	GetOne(int) (*types.ProductCategory, error)
 	Update(int, *types.UpdateProductCategoryRequest) (*types.ProductCategory, error)
 	Delete(int) error
@@ -34,6 +35,15 @@ func (s *ProductCategoriesApi) Create(ctx context.Context, w http.ResponseWriter
 }
 
 func (s *ProductCategoriesApi) GetAll(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	filter := r.URL.Query()
+	filterType := filter.Get("type")
+	if filterType == "name" {
+		productCategoryNames, err := s.service.GetNames()
+		if err != nil {
+			return err
+		}
+		return writeJson(w, http.StatusOK, productCategoryNames)
+	}
 	productCategories, err := s.service.GetAll()
 	if err != nil {
 		return err
