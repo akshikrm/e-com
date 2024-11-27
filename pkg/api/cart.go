@@ -2,18 +2,18 @@ package api
 
 import (
 	"akshidas/e-com/pkg/db"
-	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/services"
+	"akshidas/e-com/pkg/storage"
 	"akshidas/e-com/pkg/types"
 	"context"
 	"net/http"
 )
 
 type CartServicer interface {
-	GetAll(uint) ([]*model.Cart, error)
-	GetOne(uint) (*model.Cart, error)
+	GetAll(uint) ([]*types.Cart, error)
+	GetOne(uint) (*types.Cart, error)
 	Create(*types.CreateCartRequest) error
-	Update(uint, *types.UpdateCartRequest) (*model.Cart, error)
+	Update(uint, *types.UpdateCartRequest) (*types.Cart, error)
 	Delete(uint) error
 }
 
@@ -83,7 +83,7 @@ func (c *CartApi) Delete(ctx context.Context, w http.ResponseWriter, r *http.Req
 }
 
 func NewCartApi(database *db.Storage) *CartApi {
-	cartModel := model.NewCartModel(database.DB)
+	cartModel := storage.NewCartStorage(database.DB)
 	cartService := services.NewCartService(cartModel)
 	return &CartApi{cartService: cartService}
 }

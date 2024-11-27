@@ -1,7 +1,6 @@
 package services
 
 import (
-	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
 	"fmt"
@@ -9,17 +8,17 @@ import (
 )
 
 type UserModeler interface {
-	Get() ([]*model.User, error)
-	GetOne(id int) (*model.User, error)
-	GetPasswordByEmail(email string) (*model.User, error)
-	GetUserByEmail(email string) (*model.User, error)
-	Create(user types.CreateUserRequest) (*model.User, error)
+	Get() ([]*types.User, error)
+	GetOne(id int) (*types.User, error)
+	GetPasswordByEmail(email string) (*types.User, error)
+	GetUserByEmail(email string) (*types.User, error)
+	Create(user types.CreateUserRequest) (*types.User, error)
 	Update(id int, user types.UpdateUserRequest) error
 	Delete(id int) error
 }
 
 type ProfileModeler interface {
-	GetByUserId(int) (*model.Profile, error)
+	GetByUserId(int) (*types.Profile, error)
 	Create(*types.NewProfileRequest) (int, error)
 	UpdateProfileByUserID(int, *types.UpdateProfileRequest) error
 	CheckIfUserExists(string) bool
@@ -49,15 +48,15 @@ func (u *UserService) Login(payload *types.LoginUserRequest) (string, error) {
 	return token, nil
 }
 
-func (u *UserService) Get() ([]*model.User, error) {
+func (u *UserService) Get() ([]*types.User, error) {
 	return u.userModel.Get()
 }
 
-func (u *UserService) GetProfile(userId int) (*model.Profile, error) {
+func (u *UserService) GetProfile(userId int) (*types.Profile, error) {
 	return u.profileModel.GetByUserId(userId)
 }
 
-func (u *UserService) GetOne(id int) (*model.User, error) {
+func (u *UserService) GetOne(id int) (*types.User, error) {
 	user, err := u.userModel.GetOne(id)
 	if err != nil {
 		return nil, err
@@ -98,7 +97,7 @@ func (u *UserService) Create(user types.CreateUserRequest) (string, error) {
 	return token, nil
 }
 
-func (u *UserService) Update(id int, user *types.UpdateProfileRequest) (*model.Profile, error) {
+func (u *UserService) Update(id int, user *types.UpdateProfileRequest) (*types.Profile, error) {
 	err := u.profileModel.UpdateProfileByUserID(id, user)
 	if err != nil {
 		return nil, err

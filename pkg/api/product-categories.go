@@ -2,18 +2,18 @@ package api
 
 import (
 	"akshidas/e-com/pkg/db"
-	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/services"
+	"akshidas/e-com/pkg/storage"
 	"akshidas/e-com/pkg/types"
 	"context"
 	"net/http"
 )
 
 type ProductCateogriesServicer interface {
-	Create(*types.NewProductCategoryRequest) (*model.ProductCategory, error)
-	GetAll() ([]*model.ProductCategory, error)
-	GetOne(int) (*model.ProductCategory, error)
-	Update(int, *types.UpdateProductCategoryRequest) (*model.ProductCategory, error)
+	Create(*types.NewProductCategoryRequest) (*types.ProductCategory, error)
+	GetAll() ([]*types.ProductCategory, error)
+	GetOne(int) (*types.ProductCategory, error)
+	Update(int, *types.UpdateProductCategoryRequest) (*types.ProductCategory, error)
 	Delete(int) error
 }
 
@@ -82,8 +82,8 @@ func (s *ProductCategoriesApi) Delete(ctx context.Context, w http.ResponseWriter
 	return writeJson(w, http.StatusOK, "delete successfully")
 }
 
-func NewProductCategoriesApi(storage *db.Storage) *ProductCategoriesApi {
-	model := model.NewProductCategories(storage.DB)
+func NewProductCategoriesApi(store *db.Storage) *ProductCategoriesApi {
+	model := storage.NewProductCategoryStorage(store.DB)
 	service := services.NewProductCategoryService(model)
 	return &ProductCategoriesApi{service: service}
 }

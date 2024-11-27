@@ -2,8 +2,8 @@ package api
 
 import (
 	"akshidas/e-com/pkg/db"
-	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/services"
+	"akshidas/e-com/pkg/storage"
 	"akshidas/e-com/pkg/types"
 	"context"
 	"fmt"
@@ -12,9 +12,9 @@ import (
 
 type ProductServicer interface {
 	Get() ([]*types.ProductsList, error)
-	GetOne(int) (*model.Product, error)
+	GetOne(int) (*types.Product, error)
 	Create(*types.CreateNewProduct) error
-	Update(int, *types.CreateNewProduct) (*model.Product, error)
+	Update(int, *types.CreateNewProduct) (*types.Product, error)
 	Delete(int) error
 }
 
@@ -83,7 +83,7 @@ func (u *ProductApi) Update(ctx context.Context, w http.ResponseWriter, r *http.
 }
 
 func NewProductApi(database *db.Storage) *ProductApi {
-	productModel := model.NewProductModel(database.DB)
+	productModel := storage.NewProductStorage(database.DB)
 	productService := services.NewProductService(productModel)
 	return &ProductApi{ProductService: productService}
 }

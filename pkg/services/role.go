@@ -2,15 +2,15 @@ package services
 
 import (
 	"akshidas/e-com/pkg/db"
-	"akshidas/e-com/pkg/model"
+	"akshidas/e-com/pkg/storage"
 	"akshidas/e-com/pkg/types"
 )
 
 type RoleModeler interface {
-	GetAll() ([]*model.Role, error)
-	GetOne(int) (*model.Role, error)
+	GetAll() ([]*types.Role, error)
+	GetOne(int) (*types.Role, error)
 	Create(*types.CreateRoleRequest) error
-	Update(int, *types.CreateRoleRequest) (*model.Role, error)
+	Update(int, *types.CreateRoleRequest) (*types.Role, error)
 	Delete(int) error
 }
 
@@ -18,11 +18,11 @@ type RoleService struct {
 	roleModel RoleModeler
 }
 
-func (r *RoleService) GetAll() ([]*model.Role, error) {
+func (r *RoleService) GetAll() ([]*types.Role, error) {
 	return r.roleModel.GetAll()
 }
 
-func (r *RoleService) GetOne(id int) (*model.Role, error) {
+func (r *RoleService) GetOne(id int) (*types.Role, error) {
 	return r.roleModel.GetOne(id)
 }
 
@@ -30,7 +30,7 @@ func (r *RoleService) Create(newRole *types.CreateRoleRequest) error {
 	return r.roleModel.Create(newRole)
 }
 
-func (r *RoleService) Update(id int, newRole *types.CreateRoleRequest) (*model.Role, error) {
+func (r *RoleService) Update(id int, newRole *types.CreateRoleRequest) (*types.Role, error) {
 	return r.roleModel.Update(id, newRole)
 }
 
@@ -39,7 +39,7 @@ func (r *RoleService) Delete(id int) error {
 }
 
 func NewRoleService(database *db.Storage) *RoleService {
-	roleModel := model.NewRoleModel(database.DB)
+	roleModel := storage.NewRoleStorage(database.DB)
 	return &RoleService{
 		roleModel: roleModel,
 	}

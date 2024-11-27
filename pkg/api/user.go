@@ -2,8 +2,8 @@ package api
 
 import (
 	"akshidas/e-com/pkg/db"
-	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/services"
+	"akshidas/e-com/pkg/storage"
 	"akshidas/e-com/pkg/types"
 	"context"
 	"fmt"
@@ -13,12 +13,12 @@ import (
 )
 
 type UserServicer interface {
-	Get() ([]*model.User, error)
-	GetProfile(int) (*model.Profile, error)
-	GetOne(int) (*model.User, error)
+	Get() ([]*types.User, error)
+	GetProfile(int) (*types.Profile, error)
+	GetOne(int) (*types.User, error)
 	Login(*types.LoginUserRequest) (string, error)
 	Create(types.CreateUserRequest) (string, error)
-	Update(int, *types.UpdateProfileRequest) (*model.Profile, error)
+	Update(int, *types.UpdateProfileRequest) (*types.Profile, error)
 	Delete(int) error
 }
 
@@ -31,7 +31,7 @@ type UserProfile struct {
 	LastName  string         `json:"last_name"`
 	Email     string         `json:"email"`
 	CreatedAt time.Time      `json:"created_at"`
-	Profile   *model.Profile `json:"profile"`
+	Profile   *types.Profile `json:"profile"`
 }
 
 func (u *UserApi) GetProfile(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
@@ -125,9 +125,9 @@ func (u *UserApi) Delete(ctx context.Context, w http.ResponseWriter, r *http.Req
 	return writeJson(w, http.StatusOK, "deleted successfully")
 }
 
-func NewUserApi(storage *db.Storage) *UserApi {
-	userModel := model.NewUserModel(storage.DB)
-	profileModel := model.NewProfileModel(storage.DB)
+func NewUserApi(store *db.Storage) *UserApi {
+	userModel := storage.NewUserStorage(store.DB)
+	profileModel := storage.NewProfileStorage(store.DB)
 	userService := services.NewUserService(userModel, profileModel)
 	return &UserApi{UserService: userService}
 }
