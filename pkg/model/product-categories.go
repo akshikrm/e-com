@@ -8,22 +8,11 @@ import (
 	"time"
 )
 
-type ProductCategory struct {
-	ID          uint       `json:"id"`
-	Name        string     `json:"name"`
-	Slug        string     `json:"slug"`
-	Description string     `json:"description"`
-	Enabled     bool       `json:"enabled"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
-	DeletedAt   *time.Time `json:"deleted_at"`
-}
-
-type ProductCategoriesModel struct {
+type ProductCategoriesStorage struct {
 	store *sql.DB
 }
 
-func (p *ProductCategoriesModel) Create(newCategory *types.NewProductCategoryRequest) (*ProductCategory, error) {
+func (p *ProductCategoriesStorage) Create(newCategory *types.NewProductCategoryRequest) (*types.ProductCategory, error) {
 	query := "INSERT INTO product_categories(name, slug, description, enabled) VALUES($1, $2, $3, $4) RETURNING *"
 	row := p.store.QueryRow(query, newCategory.Name, newCategory.Slug, newCategory.Description, newCategory.Enabled)
 
@@ -41,7 +30,7 @@ func (p *ProductCategoriesModel) Create(newCategory *types.NewProductCategoryReq
 
 }
 
-func (p *ProductCategoriesModel) GetAll() ([]*ProductCategory, error) {
+func (p *ProductCategoriesStorage) GetAll() ([]*types.ProductCategory, error) {
 	query := "SELECT * FROM  product_categories WHERE deleted_at IS NULL"
 	rows, err := p.store.Query(query)
 	if err == sql.ErrNoRows {
@@ -59,7 +48,7 @@ func (p *ProductCategoriesModel) GetAll() ([]*ProductCategory, error) {
 	return productsCategories, nil
 }
 
-func (p *ProductCategoriesModel) GetOne(id int) (*ProductCategory, error) {
+func (p *ProductCategoriesStorage) GetOne(id int) (*types.ProductCategory, error) {
 	query := "SELECT * FROM product_categories WHERE id=$1 AND deleted_at IS NULL"
 	row := p.store.QueryRow(query, id)
 	productCategory, err := scanCategoryRow(row)
@@ -73,7 +62,7 @@ func (p *ProductCategoriesModel) GetOne(id int) (*ProductCategory, error) {
 	return productCategory, err
 }
 
-func (p *ProductCategoriesModel) Update(id int, updateProductCategory *types.UpdateProductCategoryRequest) (*ProductCategory, error) {
+func (p *ProductCategoriesStorage) Update(id int, updateProductCategory *types.UpdateProductCategoryRequest) (*types.ProductCategory, error) {
 	query := "UPDATE product_categories SET name=$1, slug=$2, description=$3, enabled=$4 WHERE id=$5 AND deleted_at IS NULL RETURNING *"
 	row := p.store.QueryRow(
 		query,
@@ -94,7 +83,7 @@ func (p *ProductCategoriesModel) Update(id int, updateProductCategory *types.Upd
 	return productCategory, err
 }
 
-func (p *ProductCategoriesModel) Delete(id int) error {
+func (p *ProductCategoriesStorage) Delete(id int) error {
 	query := "UPDATE product_categories set deleted_at=$1 where id=$2 AND deleted_at IS NULL"
 	if _, err := p.store.Exec(query, time.Now(), id); err != nil {
 		log.Printf("failed to delete product category with id %d due to %s", id, err)
@@ -103,8 +92,8 @@ func (p *ProductCategoriesModel) Delete(id int) error {
 	return nil
 }
 
-func scanCategoryRow(row *sql.Row) (*ProductCategory, error) {
-	productCategory := &ProductCategory{}
+func scanCategoryRow(row *sql.Row) (*types.ProductCategory, error) {
+	productCategory := &types.ProductCategory{}
 	err := row.Scan(
 		&productCategory.ID,
 		&productCategory.Name,
@@ -121,11 +110,11 @@ func scanCategoryRow(row *sql.Row) (*ProductCategory, error) {
 	return productCategory, nil
 }
 
-func scanCategoryRows(rows *sql.Rows) ([]*ProductCategory, error) {
-	productsCategories := []*ProductCategory{}
+func scanCategoryRows(rows *sql.Rows) ([]*types.ProductCategory, error) {
+	productsCategories := []*types.ProductCategory{}
 
 	for rows.Next() {
-		productCategory := &ProductCategory{}
+		productCategory := &types.ProductCategory{}
 		err := rows.Scan(
 			&productCategory.ID,
 			&productCategory.Name,
@@ -144,6 +133,6 @@ func scanCategoryRows(rows *sql.Rows) ([]*ProductCategory, error) {
 	return productsCategories, nil
 }
 
-func NewProductCategories(store *sql.DB) *ProductCategoriesModel {
-	return &ProductCategoriesModel{store: store}
+func NewProductCategoryStorage(store *sql.DB) *ProductCategoriesStorage {
+	return &ProductCategoriesStorage{store: store}
 }

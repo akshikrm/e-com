@@ -10,10 +10,10 @@ import (
 )
 
 type ProductCateogriesServicer interface {
-	Create(*types.NewProductCategoryRequest) (*model.ProductCategory, error)
-	GetAll() ([]*model.ProductCategory, error)
-	GetOne(int) (*model.ProductCategory, error)
-	Update(int, *types.UpdateProductCategoryRequest) (*model.ProductCategory, error)
+	Create(*types.NewProductCategoryRequest) (*types.ProductCategory, error)
+	GetAll() ([]*types.ProductCategory, error)
+	GetOne(int) (*types.ProductCategory, error)
+	Update(int, *types.UpdateProductCategoryRequest) (*types.ProductCategory, error)
 	Delete(int) error
 }
 
@@ -83,7 +83,7 @@ func (s *ProductCategoriesApi) Delete(ctx context.Context, w http.ResponseWriter
 }
 
 func NewProductCategoriesApi(storage *db.Storage) *ProductCategoriesApi {
-	model := model.NewProductCategories(storage.DB)
+	model := model.NewProductCategoryStorage(storage.DB)
 	service := services.NewProductCategoryService(model)
 	return &ProductCategoriesApi{service: service}
 }
