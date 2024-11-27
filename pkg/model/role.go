@@ -8,21 +8,11 @@ import (
 	"time"
 )
 
-type Role struct {
-	ID          int        `json:"id"`
-	Code        string     `json:"code"`
-	Name        string     `json:"name"`
-	Description string     `json:"description"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
-	DeletedAt   *time.Time `json:"deleted_at"`
-}
-
-type RoleModel struct {
+type RoleStorage struct {
 	store *sql.DB
 }
 
-func (r *RoleModel) GetAll() ([]*Role, error) {
+func (r *RoleStorage) GetAll() ([]*types.Role, error) {
 	query := `select * from roles`
 	rows, err := r.store.Query(query)
 
@@ -38,7 +28,7 @@ func (r *RoleModel) GetAll() ([]*Role, error) {
 	return roles, err
 }
 
-func (r *RoleModel) GetOne(id int) (*Role, error) {
+func (r *RoleStorage) GetOne(id int) (*types.Role, error) {
 	query := `select * from roles where id=$1`
 	row := r.store.QueryRow(query, id)
 
@@ -51,7 +41,7 @@ func (r *RoleModel) GetOne(id int) (*Role, error) {
 	return role, nil
 }
 
-func (r *RoleModel) Create(newRole *types.CreateRoleRequest) error {
+func (r *RoleStorage) Create(newRole *types.CreateRoleRequest) error {
 	query := `INSERT INTO roles(name, code, description)
 	VALUES($1,$2, $3)
 	`
@@ -67,7 +57,7 @@ func (r *RoleModel) Create(newRole *types.CreateRoleRequest) error {
 	return nil
 }
 
-func (r *RoleModel) Update(id int, newRole *types.CreateRoleRequest) (*Role, error) {
+func (r *RoleStorage) Update(id int, newRole *types.CreateRoleRequest) (*types.Role, error) {
 	query := `UPDATE roles SET name=$1, code=$2, description=$3 returning *`
 	row := r.store.QueryRow(query,
 		newRole.Name,
@@ -83,7 +73,7 @@ func (r *RoleModel) Update(id int, newRole *types.CreateRoleRequest) (*Role, err
 	return role, nil
 }
 
-func (r *RoleModel) Delete(id int) error {
+func (r *RoleStorage) Delete(id int) error {
 	query := "UPDATE roles set deleted_at=$1 where id=$2"
 	if _, err := r.store.Exec(query, time.Now(), id); err != nil {
 		log.Printf("failed to delete role %d due to %s", id, err)
@@ -92,10 +82,10 @@ func (r *RoleModel) Delete(id int) error {
 	return nil
 }
 
-func scanRows(rows *sql.Rows) ([]*Role, error) {
-	roles := []*Role{}
+func scanRows(rows *sql.Rows) ([]*types.Role, error) {
+	roles := []*types.Role{}
 	for rows.Next() {
-		role := &Role{}
+		role := &types.Role{}
 		err := rows.Scan(
 			&role.ID,
 			&role.Code,
@@ -115,8 +105,8 @@ func scanRows(rows *sql.Rows) ([]*Role, error) {
 	return roles, nil
 }
 
-func scanRow(row *sql.Row) (*Role, error) {
-	role := Role{}
+func scanRow(row *sql.Row) (*types.Role, error) {
+	role := types.Role{}
 	err := row.Scan(
 		&role.ID,
 		&role.Code,
@@ -139,8 +129,8 @@ func scanRow(row *sql.Row) (*Role, error) {
 
 }
 
-func NewRoleModel(store *sql.DB) *RoleModel {
-	return &RoleModel{
+func NewRoleStorage(store *sql.DB) *RoleStorage {
+	return &RoleStorage{
 		store: store,
 	}
 }
