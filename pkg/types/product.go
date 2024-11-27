@@ -12,12 +12,13 @@ type CreateNewProduct struct {
 }
 
 type ProductsList struct {
-	ID          uint   `json:"id"`
-	Name        string `json:"name"`
-	Slug        string `json:"slug"`
-	Price       uint   `json:"price"`
-	Image       string `json:"image"`
-	Description string `json:"description"`
+	ID          uint      `json:"id"`
+	Name        string    `json:"name"`
+	Slug        string    `json:"slug"`
+	Price       uint      `json:"price"`
+	Image       string    `json:"image"`
+	Description string    `json:"description"`
+	CreatedAt   time.Time `json:"created_at"`
 	Category    struct {
 		ID          uint   `json:"id"`
 		Name        string `json:"name"`

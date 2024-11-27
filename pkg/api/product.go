@@ -6,12 +6,12 @@ import (
 	"akshidas/e-com/pkg/storage"
 	"akshidas/e-com/pkg/types"
 	"context"
-	"fmt"
 	"net/http"
+	"net/url"
 )
 
 type ProductServicer interface {
-	Get() ([]*types.ProductsList, error)
+	Get(url.Values) ([]*types.ProductsList, error)
 	GetOne(int) (*types.Product, error)
 	Create(*types.CreateNewProduct) error
 	Update(int, *types.CreateNewProduct) (*types.Product, error)
@@ -23,7 +23,8 @@ type ProductApi struct {
 }
 
 func (u *ProductApi) GetAll(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	users, err := u.ProductService.Get()
+	filter := r.URL.Query()
+	users, err := u.ProductService.Get(filter)
 	if err != nil {
 		return err
 	}
@@ -68,7 +69,6 @@ func (u *ProductApi) Create(ctx context.Context, w http.ResponseWriter, r *http.
 func (u *ProductApi) Update(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	a := types.CreateNewProduct{}
 	if err := DecodeBody(r.Body, &a); err != nil {
-		fmt.Println(err)
 		return err
 	}
 	id, err := parseId(r.PathValue("id"))

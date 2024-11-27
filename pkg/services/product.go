@@ -2,10 +2,11 @@ package services
 
 import (
 	"akshidas/e-com/pkg/types"
+	"net/url"
 )
 
 type ProductStorager interface {
-	GetAll() ([]*types.ProductsList, error)
+	GetAll(url.Values) ([]*types.ProductsList, error)
 	GetOne(int) (*types.Product, error)
 	Create(*types.CreateNewProduct) (*types.Product, error)
 	Update(int, *types.CreateNewProduct) (*types.Product, error)
@@ -16,8 +17,8 @@ type ProductService struct {
 	productModel ProductStorager
 }
 
-func (r *ProductService) Get() ([]*types.ProductsList, error) {
-	return r.productModel.GetAll()
+func (r *ProductService) Get(filter url.Values) ([]*types.ProductsList, error) {
+	return r.productModel.GetAll(filter)
 }
 
 func (r *ProductService) Create(newProduct *types.CreateNewProduct) error {

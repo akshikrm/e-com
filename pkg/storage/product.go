@@ -5,6 +5,7 @@ import (
 	"akshidas/e-com/pkg/utils"
 	"database/sql"
 	"log"
+	"net/url"
 	"time"
 )
 
@@ -58,8 +59,9 @@ func (p *ProductStorage) Update(pid int, product *types.CreateNewProduct) (*type
 	return savedProduct, nil
 }
 
-func (p *ProductStorage) GetAll() ([]*types.ProductsList, error) {
-	query := "SELECT p.id, p.name, p.slug, p.price, p.image, p.description, c.id as c_id, c.name as c_name,c.slug as c_slug,c.description as c_description FROM products p INNER JOIN product_categories c ON p.category_id=c.id AND c.enabled='t' where p.deleted_at IS NULL;"
+func (p *ProductStorage) GetAll(filter url.Values) ([]*types.ProductsList, error) {
+	query := buildFilterQuery("SELECT p.id, p.name, p.slug, p.price, p.image, p.description, p.created_at, c.id as c_id, c.name as c_name,c.slug as c_slug,c.description as c_description FROM products p INNER JOIN product_categories c ON p.category_id=c.id AND c.enabled='t' where p.deleted_at IS NULL", filter)
+
 	rows, err := p.store.Query(query)
 
 	if err == sql.ErrNoRows {
@@ -81,6 +83,7 @@ func (p *ProductStorage) GetAll() ([]*types.ProductsList, error) {
 			&product.Price,
 			&product.Image,
 			&product.Description,
+			&product.CreatedAt,
 			&product.Category.ID,
 			&product.Category.Name,
 			&product.Category.Slug,
