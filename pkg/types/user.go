@@ -1,5 +1,7 @@
 package types
 
+import "time"
+
 type CreateUserRequest struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
@@ -35,4 +37,13 @@ type UpdateProfileRequest struct {
 	AddressOne  string `json:"address_one"`
 	AddressTwo  string `json:"address_two"`
 	PhoneNumber string `json:"phone_number"`
+}
+
+type User struct {
+	ID        int        `json:"id"`
+	Password  string     `json:"-"`
+	Role      string     `json:"role_code"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `json:"deleted_at"`
 }

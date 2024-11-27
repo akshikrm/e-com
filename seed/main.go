@@ -174,7 +174,7 @@ func seedPermissionFunc(s *db.Storage) {
 
 func seedAdminFunc(s *db.Storage) {
 	log.Println("seeding admin")
-	userModel := model.NewUserModel(s.DB)
+	userModel := model.NewUserStorage(s.DB)
 	profileModel := model.NewProfileModel(s.DB)
 	userService := services.NewUserService(userModel, profileModel)
 	user := types.CreateUserRequest{
@@ -193,7 +193,7 @@ func seedAdminFunc(s *db.Storage) {
 
 func seedUsersFunc(s *db.Storage) {
 	log.Println("seeding users")
-	userModel := model.NewUserModel(s.DB)
+	userModel := model.NewUserStorage(s.DB)
 	profileModel := model.NewProfileModel(s.DB)
 	userService := services.NewUserService(userModel, profileModel)
 	userFile, err := os.Open("./seed/users.json")

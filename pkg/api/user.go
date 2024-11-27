@@ -13,9 +13,9 @@ import (
 )
 
 type UserServicer interface {
-	Get() ([]*model.User, error)
+	Get() ([]*types.User, error)
 	GetProfile(int) (*model.Profile, error)
-	GetOne(int) (*model.User, error)
+	GetOne(int) (*types.User, error)
 	Login(*types.LoginUserRequest) (string, error)
 	Create(types.CreateUserRequest) (string, error)
 	Update(int, *types.UpdateProfileRequest) (*model.Profile, error)
@@ -126,7 +126,7 @@ func (u *UserApi) Delete(ctx context.Context, w http.ResponseWriter, r *http.Req
 }
 
 func NewUserApi(storage *db.Storage) *UserApi {
-	userModel := model.NewUserModel(storage.DB)
+	userModel := model.NewUserStorage(storage.DB)
 	profileModel := model.NewProfileModel(storage.DB)
 	userService := services.NewUserService(userModel, profileModel)
 	return &UserApi{UserService: userService}

@@ -9,11 +9,11 @@ import (
 )
 
 type UserModeler interface {
-	Get() ([]*model.User, error)
-	GetOne(id int) (*model.User, error)
-	GetPasswordByEmail(email string) (*model.User, error)
-	GetUserByEmail(email string) (*model.User, error)
-	Create(user types.CreateUserRequest) (*model.User, error)
+	Get() ([]*types.User, error)
+	GetOne(id int) (*types.User, error)
+	GetPasswordByEmail(email string) (*types.User, error)
+	GetUserByEmail(email string) (*types.User, error)
+	Create(user types.CreateUserRequest) (*types.User, error)
 	Update(id int, user types.UpdateUserRequest) error
 	Delete(id int) error
 }
@@ -49,7 +49,7 @@ func (u *UserService) Login(payload *types.LoginUserRequest) (string, error) {
 	return token, nil
 }
 
-func (u *UserService) Get() ([]*model.User, error) {
+func (u *UserService) Get() ([]*types.User, error) {
 	return u.userModel.Get()
 }
 
@@ -57,7 +57,7 @@ func (u *UserService) GetProfile(userId int) (*model.Profile, error) {
 	return u.profileModel.GetByUserId(userId)
 }
 
-func (u *UserService) GetOne(id int) (*model.User, error) {
+func (u *UserService) GetOne(id int) (*types.User, error) {
 	user, err := u.userModel.GetOne(id)
 	if err != nil {
 		return nil, err

@@ -8,20 +8,11 @@ import (
 	"time"
 )
 
-type User struct {
-	ID        int        `json:"id"`
-	Password  string     `json:"-"`
-	Role      string     `json:"role_code"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `json:"deleted_at"`
-}
-
-type UserModel struct {
+type UserStorage struct {
 	store *sql.DB
 }
 
-func (m *UserModel) Get() ([]*User, error) {
+func (m *UserStorage) Get() ([]*types.User, error) {
 	query := "select * from users where role_code != 'admin' AND deleted_at IS NULL;"
 
 	rows, err := m.store.Query(query)
@@ -30,7 +21,7 @@ func (m *UserModel) Get() ([]*User, error) {
 		return nil, utils.ServerError
 	}
 
-	users := []*User{}
+	users := []*types.User{}
 	for rows.Next() {
 		user, err := ScanRows(rows)
 		if err != nil {
@@ -42,12 +33,12 @@ func (m *UserModel) Get() ([]*User, error) {
 	return users, nil
 }
 
-func (m *UserModel) GetPasswordByEmail(email string) (*User, error) {
+func (m *UserStorage) GetPasswordByEmail(email string) (*types.User, error) {
 	query := "select user_id, password, role_code from users inner join profiles on users.id = profiles.user_id where email=$1 AND users.deleted_at IS NULL;"
 
 	row := m.store.QueryRow(query, email)
 
-	user := User{}
+	user := types.User{}
 	if err := row.Scan(&user.ID, &user.Password, &user.Role); err != nil {
 		if err == sql.ErrNoRows {
 			log.Printf("profile with email: %s not found", email)
@@ -59,10 +50,10 @@ func (m *UserModel) GetPasswordByEmail(email string) (*User, error) {
 	return &user, nil
 }
 
-func (m *UserModel) GetOne(id int) (*User, error) {
+func (m *UserStorage) GetOne(id int) (*types.User, error) {
 	query := "select id, role_code, created_at,updated_at from users where id=$1 AND deleted_at IS NULL"
 	row := m.store.QueryRow(query, id)
-	user := &User{}
+	user := &types.User{}
 	err := row.Scan(
 		&user.ID,
 		&user.Role,
@@ -77,7 +68,7 @@ func (m *UserModel) GetOne(id int) (*User, error) {
 	return user, nil
 }
 
-func (m *UserModel) GetUserByEmail(email string) (*User, error) {
+func (m *UserStorage) GetUserByEmail(email string) (*types.User, error) {
 	query := "select * from users where email=$1 AND deleted_at IS NULL"
 	row := m.store.QueryRow(query, email)
 
@@ -91,7 +82,7 @@ func (m *UserModel) GetUserByEmail(email string) (*User, error) {
 
 }
 
-func (m *UserModel) Create(user types.CreateUserRequest) (*User, error) {
+func (m *UserStorage) Create(user types.CreateUserRequest) (*types.User, error) {
 	query := `insert into 
 	users (password, role_code)
 	values($1, $2)
@@ -107,7 +98,7 @@ func (m *UserModel) Create(user types.CreateUserRequest) (*User, error) {
 	)
 	log.Printf("Created user %v", user)
 
-	savedUser := User{}
+	savedUser := types.User{}
 	if err := row.Scan(&savedUser.ID, &savedUser.Role); err != nil {
 		log.Printf("failed to scan user after writing %d %s", savedUser.ID, err)
 		return nil, utils.ServerError
@@ -116,7 +107,7 @@ func (m *UserModel) Create(user types.CreateUserRequest) (*User, error) {
 	return &savedUser, nil
 }
 
-func (m *UserModel) Update(id int, user types.UpdateUserRequest) error {
+func (m *UserStorage) Update(id int, user types.UpdateUserRequest) error {
 	query := `update users set first_name=$1, last_name=$2, email=$3 where id=$4`
 	result, err := m.store.Exec(query, user.FirstName, user.LastName, user.Email, id)
 
@@ -133,7 +124,7 @@ func (m *UserModel) Update(id int, user types.UpdateUserRequest) error {
 	return nil
 }
 
-func (m *UserModel) Delete(id int) error {
+func (m *UserStorage) Delete(id int) error {
 	query := "UPDATE users set deleted_at=$1 where id=$2"
 	if _, err := m.store.Exec(query, time.Now(), id); err != nil {
 		log.Printf("failed to delete %d due to %s", id, err)
@@ -141,8 +132,8 @@ func (m *UserModel) Delete(id int) error {
 	return nil
 }
 
-func ScanRows(rows *sql.Rows) (*User, error) {
-	user := &User{}
+func ScanRows(rows *sql.Rows) (*types.User, error) {
+	user := &types.User{}
 	err := rows.Scan(
 		&user.ID,
 		&user.Password,
@@ -159,8 +150,8 @@ func ScanRows(rows *sql.Rows) (*User, error) {
 	return user, err
 }
 
-func ScanRow(row *sql.Row) (*User, error) {
-	user := &User{}
+func ScanRow(row *sql.Row) (*types.User, error) {
+	user := &types.User{}
 	err := row.Scan(
 		&user.ID,
 		&user.Password,
@@ -173,8 +164,8 @@ func ScanRow(row *sql.Row) (*User, error) {
 	return user, err
 }
 
-func NewUserModel(store *sql.DB) *UserModel {
-	return &UserModel{
+func NewUserStorage(store *sql.DB) *UserStorage {
+	return &UserStorage{
 		store: store,
 	}
 }
