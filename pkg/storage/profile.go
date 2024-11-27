@@ -1,4 +1,4 @@
-package model
+package storage
 
 import (
 	"akshidas/e-com/pkg/types"
@@ -6,33 +6,17 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"time"
 )
 
-type Profile struct {
-	ID          int        `json:"id"`
-	FirstName   string     `json:"first_name"`
-	LastName    string     `json:"last_name"`
-	Email       string     `json:"email"`
-	Pincode     string     `json:"pincode"`
-	AddressOne  string     `json:"address_one"`
-	AddressTwo  string     `json:"address_two"`
-	PhoneNumber string     `json:"phone_number"`
-	UserID      int        `json:"-"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
-	DeletedAt   *time.Time `json:"deleted_at"`
-}
-
-type ProfileModel struct {
+type ProfileStorage struct {
 	DB *sql.DB
 }
 
-func (p *ProfileModel) GetByUserId(userId int) (*Profile, error) {
+func (p *ProfileStorage) GetByUserId(userId int) (*types.Profile, error) {
 	query := `select * from profiles where user_id=$1`
 	row := p.DB.QueryRow(query, userId)
 
-	savedProfile := &Profile{}
+	savedProfile := &types.Profile{}
 	if err := row.Scan(
 		&savedProfile.ID,
 		&savedProfile.UserID,
@@ -57,7 +41,7 @@ func (p *ProfileModel) GetByUserId(userId int) (*Profile, error) {
 	return savedProfile, nil
 }
 
-func (p *ProfileModel) Create(profile *types.NewProfileRequest) (int, error) {
+func (p *ProfileStorage) Create(profile *types.NewProfileRequest) (int, error) {
 	query := `insert into
 	profiles (first_name,last_name, email, user_id)
 	values ($1, $2, $3, $4)
@@ -72,7 +56,7 @@ func (p *ProfileModel) Create(profile *types.NewProfileRequest) (int, error) {
 		profile.UserID,
 	)
 
-	savedProfile := Profile{}
+	savedProfile := types.Profile{}
 	if err := row.Scan(&savedProfile.ID); err != nil {
 		log.Printf("failed to scan user after writing %d %s", savedProfile.ID, err)
 		return 0, utils.ServerError
@@ -80,7 +64,7 @@ func (p *ProfileModel) Create(profile *types.NewProfileRequest) (int, error) {
 	return savedProfile.ID, nil
 }
 
-func (p *ProfileModel) CheckIfUserExists(email string) bool {
+func (p *ProfileStorage) CheckIfUserExists(email string) bool {
 	query := "SELECT EXISTS(SELECT 1 FROM profiles WHERE email=$1)"
 	row := p.DB.QueryRow(query, email)
 	var status bool
@@ -91,7 +75,7 @@ func (p *ProfileModel) CheckIfUserExists(email string) bool {
 	return status
 }
 
-func (p *ProfileModel) UpdateProfileByUserID(userId int, profile *types.UpdateProfileRequest) error {
+func (p *ProfileStorage) UpdateProfileByUserID(userId int, profile *types.UpdateProfileRequest) error {
 	query := `update profiles set pincode=$1, address_one=$2, address_two=$3, phone_number=$4, first_name=$5, last_name=$6, email=$7 where user_id=$8`
 
 	result, err := p.DB.Exec(query,
@@ -118,6 +102,6 @@ func (p *ProfileModel) UpdateProfileByUserID(userId int, profile *types.UpdatePr
 	return nil
 }
 
-func NewProfileModel(DB *sql.DB) *ProfileModel {
-	return &ProfileModel{DB: DB}
+func NewProfileStorage(DB *sql.DB) *ProfileStorage {
+	return &ProfileStorage{DB: DB}
 }

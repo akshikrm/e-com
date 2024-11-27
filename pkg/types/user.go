@@ -47,3 +47,18 @@ type User struct {
 	UpdatedAt time.Time  `json:"updated_at"`
 	DeletedAt *time.Time `json:"deleted_at"`
 }
+
+type Profile struct {
+	ID          int        `json:"id"`
+	FirstName   string     `json:"first_name"`
+	LastName    string     `json:"last_name"`
+	Email       string     `json:"email"`
+	Pincode     string     `json:"pincode"`
+	AddressOne  string     `json:"address_one"`
+	AddressTwo  string     `json:"address_two"`
+	PhoneNumber string     `json:"phone_number"`
+	UserID      int        `json:"-"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
+	DeletedAt   *time.Time `json:"deleted_at"`
+}

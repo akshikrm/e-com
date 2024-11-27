@@ -1,7 +1,6 @@
 package services
 
 import (
-	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
 	"fmt"
@@ -19,7 +18,7 @@ type UserModeler interface {
 }
 
 type ProfileModeler interface {
-	GetByUserId(int) (*model.Profile, error)
+	GetByUserId(int) (*types.Profile, error)
 	Create(*types.NewProfileRequest) (int, error)
 	UpdateProfileByUserID(int, *types.UpdateProfileRequest) error
 	CheckIfUserExists(string) bool
@@ -53,7 +52,7 @@ func (u *UserService) Get() ([]*types.User, error) {
 	return u.userModel.Get()
 }
 
-func (u *UserService) GetProfile(userId int) (*model.Profile, error) {
+func (u *UserService) GetProfile(userId int) (*types.Profile, error) {
 	return u.profileModel.GetByUserId(userId)
 }
 
@@ -98,7 +97,7 @@ func (u *UserService) Create(user types.CreateUserRequest) (string, error) {
 	return token, nil
 }
 
-func (u *UserService) Update(id int, user *types.UpdateProfileRequest) (*model.Profile, error) {
+func (u *UserService) Update(id int, user *types.UpdateProfileRequest) (*types.Profile, error) {
 	err := u.profileModel.UpdateProfileByUserID(id, user)
 	if err != nil {
 		return nil, err

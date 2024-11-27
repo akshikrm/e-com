@@ -2,8 +2,8 @@ package main
 
 import (
 	"akshidas/e-com/pkg/db"
-	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/services"
+	"akshidas/e-com/pkg/storage"
 	"akshidas/e-com/pkg/types"
 	"database/sql"
 	"encoding/json"
@@ -174,8 +174,8 @@ func seedPermissionFunc(s *db.Storage) {
 
 func seedAdminFunc(s *db.Storage) {
 	log.Println("seeding admin")
-	userModel := model.NewUserStorage(s.DB)
-	profileModel := model.NewProfileModel(s.DB)
+	userModel := storage.NewUserStorage(s.DB)
+	profileModel := storage.NewProfileStorage(s.DB)
 	userService := services.NewUserService(userModel, profileModel)
 	user := types.CreateUserRequest{
 		FirstName: "Admin",
@@ -193,8 +193,8 @@ func seedAdminFunc(s *db.Storage) {
 
 func seedUsersFunc(s *db.Storage) {
 	log.Println("seeding users")
-	userModel := model.NewUserStorage(s.DB)
-	profileModel := model.NewProfileModel(s.DB)
+	userModel := storage.NewUserStorage(s.DB)
+	profileModel := storage.NewProfileStorage(s.DB)
 	userService := services.NewUserService(userModel, profileModel)
 	userFile, err := os.Open("./seed/users.json")
 	if err != nil {

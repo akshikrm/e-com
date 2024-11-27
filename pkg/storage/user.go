@@ -1,4 +1,4 @@
-package model
+package storage
 
 import (
 	"akshidas/e-com/pkg/types"

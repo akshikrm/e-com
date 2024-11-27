@@ -2,8 +2,8 @@ package api
 
 import (
 	"akshidas/e-com/pkg/db"
-	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/services"
+	"akshidas/e-com/pkg/storage"
 	"akshidas/e-com/pkg/types"
 	"context"
 	"net/http"
@@ -82,8 +82,8 @@ func (s *ProductCategoriesApi) Delete(ctx context.Context, w http.ResponseWriter
 	return writeJson(w, http.StatusOK, "delete successfully")
 }
 
-func NewProductCategoriesApi(storage *db.Storage) *ProductCategoriesApi {
-	model := model.NewProductCategoryStorage(storage.DB)
+func NewProductCategoriesApi(store *db.Storage) *ProductCategoriesApi {
+	model := storage.NewProductCategoryStorage(store.DB)
 	service := services.NewProductCategoryService(model)
 	return &ProductCategoriesApi{service: service}
 }

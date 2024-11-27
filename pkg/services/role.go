@@ -2,7 +2,7 @@ package services
 
 import (
 	"akshidas/e-com/pkg/db"
-	"akshidas/e-com/pkg/model"
+	"akshidas/e-com/pkg/storage"
 	"akshidas/e-com/pkg/types"
 )
 
@@ -39,7 +39,7 @@ func (r *RoleService) Delete(id int) error {
 }
 
 func NewRoleService(database *db.Storage) *RoleService {
-	roleModel := model.NewRoleStorage(database.DB)
+	roleModel := storage.NewRoleStorage(database.DB)
 	return &RoleService{
 		roleModel: roleModel,
 	}
