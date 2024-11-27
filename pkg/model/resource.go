@@ -8,21 +8,11 @@ import (
 	"time"
 )
 
-type Resource struct {
-	ID          int        `json:"id"`
-	Code        string     `json:"code"`
-	Name        string     `json:"name"`
-	Description string     `json:"description"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
-	DeletedAt   *time.Time `json:"deleted_at"`
-}
-
-type ResourceModel struct {
+type ResourceStorage struct {
 	store *sql.DB
 }
 
-func (r *ResourceModel) GetAll() ([]*Resource, error) {
+func (r *ResourceStorage) GetAll() ([]*types.Resource, error) {
 	query := `select * from resources`
 	rows, err := r.store.Query(query)
 
@@ -38,7 +28,7 @@ func (r *ResourceModel) GetAll() ([]*Resource, error) {
 	return resources, err
 }
 
-func (r *ResourceModel) GetOne(id int) (*Resource, error) {
+func (r *ResourceStorage) GetOne(id int) (*types.Resource, error) {
 	query := `select * from resources where id=$1`
 	row := r.store.QueryRow(query, id)
 
@@ -51,7 +41,7 @@ func (r *ResourceModel) GetOne(id int) (*Resource, error) {
 	return resource, nil
 }
 
-func (r *ResourceModel) Create(newResource *types.CreateResourceRequest) error {
+func (r *ResourceStorage) Create(newResource *types.CreateResourceRequest) error {
 	query := `INSERT INTO resources(name, code, description)
 	VALUES($1,$2, $3)
 	`
@@ -67,7 +57,7 @@ func (r *ResourceModel) Create(newResource *types.CreateResourceRequest) error {
 	return nil
 }
 
-func (r *ResourceModel) Update(id int, newResource *types.CreateResourceRequest) (*Resource, error) {
+func (r *ResourceStorage) Update(id int, newResource *types.CreateResourceRequest) (*types.Resource, error) {
 	query := `UPDATE resources SET name=$1, code=$2, description=$3 returning *`
 	row := r.store.QueryRow(query,
 		newResource.Name,
@@ -83,7 +73,7 @@ func (r *ResourceModel) Update(id int, newResource *types.CreateResourceRequest)
 	return resource, nil
 }
 
-func (r *ResourceModel) Delete(id int) error {
+func (r *ResourceStorage) Delete(id int) error {
 	query := "UPDATE resources set deleted_at=$1 where id=$2"
 	if _, err := r.store.Exec(query, time.Now(), id); err != nil {
 		log.Printf("failed to delete resource %d due to %s", id, err)
@@ -92,10 +82,10 @@ func (r *ResourceModel) Delete(id int) error {
 	return nil
 }
 
-func scanResourceRows(rows *sql.Rows) ([]*Resource, error) {
-	resources := []*Resource{}
+func scanResourceRows(rows *sql.Rows) ([]*types.Resource, error) {
+	resources := []*types.Resource{}
 	for rows.Next() {
-		resource := &Resource{}
+		resource := &types.Resource{}
 		err := rows.Scan(
 			&resource.ID,
 			&resource.Code,
@@ -115,8 +105,8 @@ func scanResourceRows(rows *sql.Rows) ([]*Resource, error) {
 	return resources, nil
 }
 
-func scanResourceRow(row *sql.Row) (*Resource, error) {
-	resource := Resource{}
+func scanResourceRow(row *sql.Row) (*types.Resource, error) {
+	resource := types.Resource{}
 	err := row.Scan(
 		&resource.ID,
 		&resource.Code,
@@ -139,8 +129,8 @@ func scanResourceRow(row *sql.Row) (*Resource, error) {
 
 }
 
-func NewResourceModel(store *sql.DB) *ResourceModel {
-	return &ResourceModel{
+func NewResourceStorage(store *sql.DB) *ResourceStorage {
+	return &ResourceStorage{
 		store: store,
 	}
 }

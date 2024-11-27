@@ -7,10 +7,10 @@ import (
 )
 
 type ResourceModeler interface {
-	GetAll() ([]*model.Resource, error)
-	GetOne(int) (*model.Resource, error)
+	GetAll() ([]*types.Resource, error)
+	GetOne(int) (*types.Resource, error)
 	Create(*types.CreateResourceRequest) error
-	Update(int, *types.CreateResourceRequest) (*model.Resource, error)
+	Update(int, *types.CreateResourceRequest) (*types.Resource, error)
 	Delete(int) error
 }
 
@@ -18,11 +18,11 @@ type ResourceService struct {
 	roleModel ResourceModeler
 }
 
-func (r *ResourceService) GetAll() ([]*model.Resource, error) {
+func (r *ResourceService) GetAll() ([]*types.Resource, error) {
 	return r.roleModel.GetAll()
 }
 
-func (r *ResourceService) GetOne(id int) (*model.Resource, error) {
+func (r *ResourceService) GetOne(id int) (*types.Resource, error) {
 	return r.roleModel.GetOne(id)
 }
 
@@ -30,7 +30,7 @@ func (r *ResourceService) Create(newResource *types.CreateResourceRequest) error
 	return r.roleModel.Create(newResource)
 }
 
-func (r *ResourceService) Update(id int, newResource *types.CreateResourceRequest) (*model.Resource, error) {
+func (r *ResourceService) Update(id int, newResource *types.CreateResourceRequest) (*types.Resource, error) {
 	return r.roleModel.Update(id, newResource)
 }
 
@@ -39,7 +39,7 @@ func (r *ResourceService) Delete(id int) error {
 }
 
 func NewResourceService(database *db.Storage) *ResourceService {
-	roleModel := model.NewResourceModel(database.DB)
+	roleModel := model.NewResourceStorage(database.DB)
 	return &ResourceService{
 		roleModel: roleModel,
 	}
