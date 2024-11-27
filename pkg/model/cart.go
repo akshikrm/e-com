@@ -8,21 +8,11 @@ import (
 	"time"
 )
 
-type Cart struct {
-	ID        uint       `json:"id"`
-	UserID    uint       `json:"user_id"`
-	ProductID uint       `json:"product_id"`
-	Quantity  uint       `json:"quantity"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `json:"deleted_at"`
-}
-
-type CartModel struct {
+type CartStorage struct {
 	store *sql.DB
 }
 
-func (c *CartModel) GetAll(userID uint) ([]*Cart, error) {
+func (c *CartStorage) GetAll(userID uint) ([]*types.Cart, error) {
 	query := "SELECT * FROM carts WHERE user_id=$1 AND deleted_at IS NULL"
 	rows, err := c.store.Query(query, userID)
 	if err == sql.ErrNoRows {
@@ -35,7 +25,7 @@ func (c *CartModel) GetAll(userID uint) ([]*Cart, error) {
 	return scanCartRows(rows)
 }
 
-func (c *CartModel) GetOne(cid uint) (*Cart, error) {
+func (c *CartStorage) GetOne(cid uint) (*types.Cart, error) {
 	query := "SELECT * FROM carts WHERE id=$1 AND deleted_at IS NULL"
 	row := c.store.QueryRow(query, cid)
 	cart, err := scanNewCartRow(row)
@@ -49,7 +39,7 @@ func (c *CartModel) GetOne(cid uint) (*Cart, error) {
 	return cart, nil
 }
 
-func (c *CartModel) Create(newCart *types.CreateCartRequest) (*Cart, error) {
+func (c *CartStorage) Create(newCart *types.CreateCartRequest) (*types.Cart, error) {
 	query := "INSERT INTO carts(user_id, product_id, quantity) VALUES($1, $2, $3) RETURNING *"
 	row := c.store.QueryRow(query, newCart.UserID, newCart.ProductID, newCart.Quantity)
 	cart, err := scanNewCartRow(row)
@@ -60,7 +50,7 @@ func (c *CartModel) Create(newCart *types.CreateCartRequest) (*Cart, error) {
 	return cart, nil
 }
 
-func (c *CartModel) Update(cid uint, updateCart *types.UpdateCartRequest) (*Cart, error) {
+func (c *CartStorage) Update(cid uint, updateCart *types.UpdateCartRequest) (*types.Cart, error) {
 	query := "UPDATE carts SET quantity=$1 WHERE id=$2 AND deleted_at IS NULL RETURNING *"
 	row := c.store.QueryRow(query, updateCart.Quantity, cid)
 	cart, err := scanNewCartRow(row)
@@ -74,7 +64,7 @@ func (c *CartModel) Update(cid uint, updateCart *types.UpdateCartRequest) (*Cart
 	return cart, nil
 }
 
-func (c *CartModel) Delete(cid uint) error {
+func (c *CartStorage) Delete(cid uint) error {
 	query := "UPDATE carts set deleted_at=$1 where id=$2 AND deleted_at IS NULL"
 	if _, err := c.store.Exec(query, time.Now(), cid); err != nil {
 		log.Printf("failed to delete cart item with id %d due to %s", cid, err)
@@ -83,8 +73,8 @@ func (c *CartModel) Delete(cid uint) error {
 	return nil
 }
 
-func scanNewCartRow(row *sql.Row) (*Cart, error) {
-	cart := Cart{}
+func scanNewCartRow(row *sql.Row) (*types.Cart, error) {
+	cart := types.Cart{}
 	err := row.Scan(
 		&cart.ID,
 		&cart.UserID,
@@ -100,10 +90,10 @@ func scanNewCartRow(row *sql.Row) (*Cart, error) {
 	return &cart, nil
 }
 
-func scanCartRows(rows *sql.Rows) ([]*Cart, error) {
-	carts := []*Cart{}
+func scanCartRows(rows *sql.Rows) ([]*types.Cart, error) {
+	carts := []*types.Cart{}
 	for rows.Next() {
-		cart := Cart{}
+		cart := types.Cart{}
 		err := rows.Scan(
 			&cart.ID,
 			&cart.UserID,
@@ -123,8 +113,8 @@ func scanCartRows(rows *sql.Rows) ([]*Cart, error) {
 	return carts, nil
 }
 
-func NewCartModel(store *sql.DB) *CartModel {
-	return &CartModel{
+func NewCartStorage(store *sql.DB) *CartStorage {
+	return &CartStorage{
 		store: store,
 	}
 }

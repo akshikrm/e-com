@@ -10,10 +10,10 @@ import (
 )
 
 type CartServicer interface {
-	GetAll(uint) ([]*model.Cart, error)
-	GetOne(uint) (*model.Cart, error)
+	GetAll(uint) ([]*types.Cart, error)
+	GetOne(uint) (*types.Cart, error)
 	Create(*types.CreateCartRequest) error
-	Update(uint, *types.UpdateCartRequest) (*model.Cart, error)
+	Update(uint, *types.UpdateCartRequest) (*types.Cart, error)
 	Delete(uint) error
 }
 
@@ -83,7 +83,7 @@ func (c *CartApi) Delete(ctx context.Context, w http.ResponseWriter, r *http.Req
 }
 
 func NewCartApi(database *db.Storage) *CartApi {
-	cartModel := model.NewCartModel(database.DB)
+	cartModel := model.NewCartStorage(database.DB)
 	cartService := services.NewCartService(cartModel)
 	return &CartApi{cartService: cartService}
 }
