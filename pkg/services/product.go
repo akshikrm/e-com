@@ -1,20 +1,19 @@
 package services
 
 import (
-	"akshidas/e-com/pkg/model"
 	"akshidas/e-com/pkg/types"
 )
 
-type ProductModeler interface {
+type ProductStorager interface {
 	GetAll() ([]*types.ProductsList, error)
-	GetOne(int) (*model.Product, error)
-	Create(*types.CreateNewProduct) (*model.Product, error)
-	Update(int, *types.CreateNewProduct) (*model.Product, error)
+	GetOne(int) (*types.Product, error)
+	Create(*types.CreateNewProduct) (*types.Product, error)
+	Update(int, *types.CreateNewProduct) (*types.Product, error)
 	Delete(int) error
 }
 
 type ProductService struct {
-	productModel ProductModeler
+	productModel ProductStorager
 }
 
 func (r *ProductService) Get() ([]*types.ProductsList, error) {
@@ -26,11 +25,11 @@ func (r *ProductService) Create(newProduct *types.CreateNewProduct) error {
 	return err
 }
 
-func (r *ProductService) Update(id int, newProduct *types.CreateNewProduct) (*model.Product, error) {
+func (r *ProductService) Update(id int, newProduct *types.CreateNewProduct) (*types.Product, error) {
 	return r.productModel.Update(id, newProduct)
 }
 
-func (r *ProductService) GetOne(id int) (*model.Product, error) {
+func (r *ProductService) GetOne(id int) (*types.Product, error) {
 	return r.productModel.GetOne(id)
 }
 
@@ -38,7 +37,7 @@ func (r *ProductService) Delete(id int) error {
 	return r.productModel.Delete(id)
 }
 
-func NewProductService(productModel ProductModeler) *ProductService {
+func NewProductService(productModel ProductStorager) *ProductService {
 	return &ProductService{
 		productModel: productModel,
 	}
