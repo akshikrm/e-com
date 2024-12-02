@@ -44,16 +44,12 @@ func serverError(w http.ResponseWriter) error {
 	return writeError(w, http.StatusInternalServerError, errors.New("something went wrong"))
 }
 
+func Cors(w http.ResponseWriter) error {
+	return writeJson(w, http.StatusNoContent, errors.New("no content"))
+}
+
 func RouteHandler(f apiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Headers", "*")
-
-		if r.Method == "OPTIONS" {
-			writeError(w, http.StatusNoContent, errors.New("no content"))
-			return
-		}
-
 		if err := f(w, r); err != nil {
 			handleError(w, err)
 		}
@@ -83,6 +79,8 @@ func writeJson(w http.ResponseWriter, status int, value any) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "*")
+
 	w.WriteHeader(status)
 	return json.NewEncoder(w).Encode(&ApiResponse{Data: value})
 }
@@ -91,6 +89,8 @@ func writeError(w http.ResponseWriter, status int, err error) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "*")
+
 	w.WriteHeader(status)
 	return json.NewEncoder(w).Encode(&ApiError{Error: err.Error()})
 }

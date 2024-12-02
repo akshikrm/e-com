@@ -19,16 +19,8 @@ type APIServer struct {
 func (s *APIServer) Run() {
 	router := http.NewServeMux()
 
-	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Headers", "*")
-		w.Write([]byte("server is up and running"))
-	})
-
 	router.HandleFunc("OPTIONS /", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Headers", "*")
-		w.Write([]byte("server is up and running"))
+		api.Cors(w)
 	})
 
 	s.registerRoutes(router)
@@ -49,7 +41,6 @@ func (s *APIServer) registerRoutes(r *http.ServeMux) {
 	productCategoryApi := api.NewProductCategoriesApi(s.Store)
 	// Middle wares
 	middlware := api.NewMiddleWare(userApi.UserService)
-
 	// Public Routes
 	r.HandleFunc("POST /users", api.RouteHandler(userApi.Create))
 	r.HandleFunc("POST /login", api.RouteHandler(userApi.Login))
@@ -80,7 +71,6 @@ func (s *APIServer) registerRoutes(r *http.ServeMux) {
 	r.HandleFunc("DELETE /products/categories/{id}", api.RouteHandler(middlware.IsAdmin(ctx, productCategoryApi.Delete)))
 
 	r.HandleFunc("GET /products", api.RouteHandler(middlware.IsAdmin(ctx, productApi.GetAll)))
-	r.HandleFunc("OPTIONS /products", api.RouteHandler(middlware.IsAdmin(ctx, productApi.GetAll)))
 	r.HandleFunc("GET /products/{id}", api.RouteHandler(middlware.IsAdmin(ctx, productApi.GetOne)))
 	r.HandleFunc("PUT /products/{id}", api.RouteHandler(middlware.IsAdmin(ctx, productApi.Update)))
 	r.HandleFunc("DELETE /products/{id}", api.RouteHandler(middlware.IsAdmin(ctx, productApi.Delete)))
