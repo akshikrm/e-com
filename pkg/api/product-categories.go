@@ -7,11 +7,12 @@ import (
 	"akshidas/e-com/pkg/types"
 	"context"
 	"net/http"
+	"net/url"
 )
 
 type ProductCateogriesServicer interface {
 	Create(*types.NewProductCategoryRequest) (*types.ProductCategory, error)
-	GetAll() ([]*types.ProductCategory, error)
+	GetAll(url.Values) ([]*types.ProductCategory, error)
 	GetNames() ([]*types.ProductCategoryName, error)
 	GetOne(int) (*types.ProductCategory, error)
 	Update(int, *types.UpdateProductCategoryRequest) (*types.ProductCategory, error)
@@ -44,7 +45,7 @@ func (s *ProductCategoriesApi) GetAll(ctx context.Context, w http.ResponseWriter
 		}
 		return writeJson(w, http.StatusOK, productCategoryNames)
 	}
-	productCategories, err := s.service.GetAll()
+	productCategories, err := s.service.GetAll(filter)
 	if err != nil {
 		return err
 	}

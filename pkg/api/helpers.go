@@ -79,6 +79,7 @@ func writeJson(w http.ResponseWriter, status int, value any) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Add("Access-Control-Allow-Headers", "Authorization")
 	w.Header().Set("Access-Control-Allow-Methods", "*")
 
 	w.WriteHeader(status)

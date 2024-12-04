@@ -4,7 +4,9 @@ import (
 	"akshidas/e-com/pkg/types"
 	"akshidas/e-com/pkg/utils"
 	"database/sql"
+	"fmt"
 	"log"
+	"net/url"
 	"time"
 )
 
@@ -58,8 +60,9 @@ func (p *ProductCategoriesStorage) GetNames() ([]*types.ProductCategoryName, err
 	return productsCategories, nil
 }
 
-func (p *ProductCategoriesStorage) GetAll() ([]*types.ProductCategory, error) {
-	query := "SELECT * FROM  product_categories WHERE deleted_at IS NULL"
+func (p *ProductCategoriesStorage) GetAll(filter url.Values) ([]*types.ProductCategory, error) {
+	query := buildFilterQuery("SELECT * FROM product_categories as p WHERE deleted_at IS NULL", filter)
+	fmt.Println(query)
 	rows, err := p.store.Query(query)
 	if err == sql.ErrNoRows {
 		return nil, utils.NotFound
