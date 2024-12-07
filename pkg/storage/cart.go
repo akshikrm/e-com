@@ -22,7 +22,12 @@ func (c *CartStorage) GetAll(userID uint) ([]*types.Cart, error) {
 		log.Printf("failed to get all products due to %s", err)
 		return nil, utils.ServerError
 	}
-	return scanCartRows(rows)
+	carts, err := scanCartRows(rows)
+	if err != nil {
+		log.Printf("failed to get all products due to %s", err)
+		return nil, utils.ServerError
+	}
+	return carts, nil
 }
 
 func (c *CartStorage) GetOne(cid uint) (*types.Cart, error) {
