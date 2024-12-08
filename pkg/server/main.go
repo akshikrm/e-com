@@ -52,6 +52,7 @@ func (s *APIServer) registerRoutes(r *http.ServeMux) {
 	r.HandleFunc("GET /carts", api.RouteHandler(middlware.IsAuthenticated(ctx, cartApi.GetAll)))
 	r.HandleFunc("PUT /carts/{id}", api.RouteHandler(middlware.IsAuthenticated(ctx, cartApi.Update)))
 	r.HandleFunc("DELETE /carts/{id}", api.RouteHandler(middlware.IsAuthenticated(ctx, cartApi.Delete)))
+	r.HandleFunc("GET /products", api.RouteHandler(middlware.IsAuthenticated(ctx, productApi.GetAll)))
 
 	// Admin Routes
 	r.HandleFunc("GET /users", api.RouteHandler(middlware.IsAdmin(ctx, userApi.GetAll)))
@@ -70,7 +71,6 @@ func (s *APIServer) registerRoutes(r *http.ServeMux) {
 
 	r.HandleFunc("DELETE /products/categories/{id}", api.RouteHandler(middlware.IsAdmin(ctx, productCategoryApi.Delete)))
 
-	r.HandleFunc("GET /products", api.RouteHandler(middlware.IsAdmin(ctx, productApi.GetAll)))
 	r.HandleFunc("GET /products/{id}", api.RouteHandler(middlware.IsAdmin(ctx, productApi.GetOne)))
 	r.HandleFunc("PUT /products/{id}", api.RouteHandler(middlware.IsAdmin(ctx, productApi.Update)))
 	r.HandleFunc("DELETE /products/{id}", api.RouteHandler(middlware.IsAdmin(ctx, productApi.Delete)))
