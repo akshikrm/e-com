@@ -39,11 +39,14 @@ func (s *APIServer) registerRoutes(r *http.ServeMux) {
 	productApi := api.NewProductApi(s.Store)
 	cartApi := api.NewCartApi(s.Store)
 	productCategoryApi := api.NewProductCategoriesApi(s.Store)
+	uploadApi := api.NewUploadApi(s.Store)
+
 	// Middle wares
 	middlware := api.NewMiddleWare(userApi.UserService)
 	// Public Routes
 	r.HandleFunc("POST /users", api.RouteHandler(userApi.Create))
 	r.HandleFunc("POST /login", api.RouteHandler(userApi.Login))
+	r.HandleFunc("POST /upload", api.RouteHandler(uploadApi.Upload))
 
 	// Authenticated Routes
 	r.HandleFunc("GET /profile", api.RouteHandler(middlware.IsAuthenticated(ctx, userApi.GetProfile)))

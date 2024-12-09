@@ -9,6 +9,7 @@
 *.dylib
 dist
 seeder
+storage
 # Test binary, built with `go test -c`
 *.test
 
@@ -28,3 +29,5 @@ go.work.sum
 
 # Misc
 *.vim
+
+

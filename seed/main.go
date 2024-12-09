@@ -80,6 +80,8 @@ const (
 	CREATE_PRODUCT          = "CREATE TABLE IF NOT EXISTS products (id SERIAL PRIMARY KEY, name VARCHAR(30), slug VARCHAR(30), price INTEGER NOT NULL DEFAULT 0, image VARCHAR(100),  description VARCHAR(300) NOT NULL, category_id INTEGER NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL, deleted_at TIMESTAMP DEFAULT NULL, CONSTRAINT fk_category FOREIGN KEY (category_id) REFERENCES product_categories(id))"
 	CREATE_PRODUCT_CATEGORY = "create table if not exists product_categories(id SERIAL PRIMARY KEY, name VARCHAR(30) NOT NULL, slug VARCHAR(30) NOT NULL,enabled BOOLEAN DEFAULT true, description VARCHAR(120) NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL, deleted_at TIMESTAMP DEFAULT NULL)"
 	CREATE_CART             = "CREATE TABLE IF NOT EXISTS carts (id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, product_id INTEGER NOT NULL, quantity INTEGER DEFAULT 1 NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL, deleted_at TIMESTAMP DEFAULT NULL, CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(id), CONSTRAINT fk_product FOREIGN KEY(product_id) REFERENCES products(id))"
+
+	CREATE_UPLOAD = "CREATE TABLE IF NOT EXISTS uploads (id SERIAL PRIMARY KEY, path VARCHAR(200) NOT NULL, created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL, deleted_at TIMESTAMP DEFAULT NULL)"
 )
 
 func dropTables(store *sql.DB, table string) {
@@ -230,6 +232,7 @@ func Init(s *db.Storage) {
 	CreateTable(s.DB, CREATE_PRODUCT_CATEGORY, "product_categories")
 	CreateTable(s.DB, CREATE_PRODUCT, "products")
 	CreateTable(s.DB, CREATE_CART, "carts")
+	CreateTable(s.DB, CREATE_UPLOAD, "uploads")
 	log.Println("successfully created all tables")
 
 	CreateUpdatedAtFunction(s.DB)
@@ -243,6 +246,7 @@ func Init(s *db.Storage) {
 	CreateUpdatedAtTrigger(s.DB, "products")
 	CreateUpdatedAtTrigger(s.DB, "carts")
 	CreateUpdatedAtTrigger(s.DB, "product_categories")
+	CreateUpdatedAtTrigger(s.DB, "uploads")
 	log.Println("successfully created all triggers")
 
 	adminRole := types.CreateRoleRequest{
