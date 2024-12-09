@@ -71,6 +71,30 @@ func (c *CartStorage) GetOne(cid uint) (*types.CartList, error) {
 	return &cart, nil
 }
 
+func (c *CartStorage) CheckIfEntryExist(userID, productID uint) (bool, error) {
+	query := "select exists(select 1 from carts where user_id=$1 and product_id=$2 and deleted_at IS NULL)"
+	row := c.store.QueryRow(query, userID, productID)
+	var exists bool
+	if err := row.Scan(&exists); err != nil {
+		log.Printf("failed to scan due to %s", err)
+		return false, utils.ServerError
+	}
+	return exists, nil
+}
+
+func (c *CartStorage) UpdateQuantity(cid, pid uint) error {
+	query := "UPDATE carts SET quantity=quantity+1 WHERE user_id=$1 and product_id=$2"
+	if _, err := c.store.Exec(query, cid, pid); err != nil {
+		if err == sql.ErrNoRows {
+			return utils.NotFound
+		}
+		log.Printf("Failed to update cart %d due to %s", cid, err)
+		return utils.ServerError
+	}
+
+	return nil
+}
+
 func (c *CartStorage) Create(newCart *types.CreateCartRequest) (*types.Cart, error) {
 	query := "INSERT INTO carts(user_id, product_id, quantity) VALUES($1, $2, $3) RETURNING *"
 	row := c.store.QueryRow(query, newCart.UserID, newCart.ProductID, newCart.Quantity)

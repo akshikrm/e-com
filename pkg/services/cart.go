@@ -2,6 +2,7 @@ package services
 
 import (
 	"akshidas/e-com/pkg/types"
+	"fmt"
 )
 
 type CartModeler interface {
@@ -10,6 +11,8 @@ type CartModeler interface {
 	Create(*types.CreateCartRequest) (*types.Cart, error)
 	Update(uint, *types.UpdateCartRequest) (*types.CartList, error)
 	Delete(uint) error
+	CheckIfEntryExist(uint, uint) (bool, error)
+	UpdateQuantity(uint, uint) error
 }
 
 type CartService struct {
@@ -25,7 +28,17 @@ func (c *CartService) GetOne(cid uint) (*types.CartList, error) {
 }
 
 func (c *CartService) Create(newCart *types.CreateCartRequest) error {
-	_, err := c.cartModel.Create(newCart)
+	exists, err := c.cartModel.CheckIfEntryExist(newCart.UserID, newCart.ProductID)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(exists)
+	if exists {
+		return c.cartModel.UpdateQuantity(newCart.UserID, newCart.ProductID)
+	}
+
+	_, err = c.cartModel.Create(newCart)
 	return err
 }
 
