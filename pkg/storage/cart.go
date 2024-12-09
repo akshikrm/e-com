@@ -12,20 +12,35 @@ type CartStorage struct {
 	store *sql.DB
 }
 
-func (c *CartStorage) GetAll(userID uint) ([]*types.Cart, error) {
-	query := "SELECT * FROM carts WHERE user_id=$1 AND deleted_at IS NULL"
+func (c *CartStorage) GetAll(userID uint) ([]*types.CartList, error) {
+	query := "SELECT c.id, c.quantity, p.id, p.name, p.slug, p.price, p.description, p.image, c.created_at FROM carts c INNER JOIN products p ON c.product_id=p.id WHERE c.user_id=$1 AND c.deleted_at IS NULL"
 	rows, err := c.store.Query(query, userID)
 	if err == sql.ErrNoRows {
 		return nil, utils.NotFound
 	}
 	if err != nil {
-		log.Printf("failed to get all products due to %s", err)
+		log.Printf("failed to get all carts due to %s", err)
 		return nil, utils.ServerError
 	}
-	carts, err := scanCartRows(rows)
-	if err != nil {
-		log.Printf("failed to get all products due to %s", err)
-		return nil, utils.ServerError
+	carts := []*types.CartList{}
+	for rows.Next() {
+		cart := types.CartList{}
+		err := rows.Scan(
+			&cart.ID,
+			&cart.Quantity,
+			&cart.Product.ID,
+			&cart.Product.Name,
+			&cart.Product.Slug,
+			&cart.Product.Price,
+			&cart.Product.Description,
+			&cart.Product.Image,
+			&cart.CreatedAt,
+		)
+		if err != nil {
+			log.Printf("failed to scan carts due to %s", err)
+			return nil, utils.ServerError
+		}
+		carts = append(carts, &cart)
 	}
 	return carts, nil
 }
