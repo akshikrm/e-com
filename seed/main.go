@@ -31,6 +31,8 @@ func Seed(s *db.Storage) error {
 	seedUsers := flag.Bool("seed-users", false, "seed db if true")
 	seedResources := flag.Bool("seed-resources", false, "seed db if true")
 	seedPermission := flag.Bool("seed-permission", false, "seed db if true")
+	seedProducts := flag.Bool("seed-products", false, "seed db if true")
+	seedProductCategory := flag.Bool("seed-product-categories", false, "seed db if true")
 	nukeDb := flag.Bool("nuke-db", false, "clear everything in the database")
 	refreshDb := flag.Bool("refresh-db", false, "clear everything in the database")
 
@@ -40,6 +42,15 @@ func Seed(s *db.Storage) error {
 		os.Exit(0)
 	}
 
+	if *seedProducts {
+		seedProductsFunc(s)
+		os.Exit(0)
+	}
+
+	if *seedProductCategory {
+		seedProductsCategoriesFunc(s)
+		os.Exit(0)
+	}
 	if *seedResources {
 		seedResourcesFunc(s)
 		os.Exit(0)
@@ -193,6 +204,44 @@ func seedAdminFunc(s *db.Storage) {
 	log.Println("Successfully seed admin")
 }
 
+func seedProductsCategoriesFunc(s *db.Storage) {
+	log.Println("seeding products categories")
+	productStorage := storage.NewProductCategoryStorage(s.DB)
+	productService := services.NewProductCategoryService(productStorage)
+	file := readFile("./seed/product-categories.json")
+	productCategories := []types.NewProductCategoryRequest{}
+	json.Unmarshal(file, &productCategories)
+
+	for i, product := range productCategories {
+		fmt.Println(i, product)
+		if _, err := productService.Create(&product); err != nil {
+			log.Printf("Failed to add product category %s due to %s\n", product.Name, err)
+			continue
+		}
+		fmt.Println("Inserted product category")
+	}
+	fmt.Println("Finished seeding product category")
+}
+
+func seedProductsFunc(s *db.Storage) {
+	log.Println("seeding products")
+	productStorage := storage.NewProductStorage(s.DB)
+	productService := services.NewProductService(productStorage)
+	file := readFile("./seed/products.json")
+	products := []types.CreateNewProduct{}
+	json.Unmarshal(file, &products)
+
+	for i, product := range products {
+		fmt.Println(i, product)
+		if err := productService.Create(&product); err != nil {
+			log.Printf("Failed to add product %s due to %s\n", product.Name, err)
+			continue
+		}
+		fmt.Println("Inserted product")
+	}
+	fmt.Println("Finished seeding product")
+}
+
 func seedUsersFunc(s *db.Storage) {
 	log.Println("seeding users")
 	userModel := storage.NewUserStorage(s.DB)
@@ -221,6 +270,23 @@ func seedUsersFunc(s *db.Storage) {
 		log.Printf("Inserting %d\n", i)
 	}
 	log.Println("Successfully seed users")
+}
+
+func readFile(filePath string) []byte {
+	file, err := os.Open(filePath)
+	if err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
+	defer file.Close()
+
+	byteValue, err := io.ReadAll(file)
+	if err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
+	return byteValue
+
 }
 
 func Init(s *db.Storage) {

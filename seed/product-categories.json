@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Web Development",
+    "description": "Learn how to build websites and web applications using the latest web technologies.",
+    "slug": "web-development",
+    "enabled": true
+  },
+  {
+    "name": "Data Science",
+    "description": "Dive into data analysis, machine learning, and data visualization to gain insights from data.",
+    "slug": "data-science",
+    "enabled": true
+  },
+  {
+    "name": "Mobile Development",
+    "description": "Master iOS and Android app development to create native mobile applications.",
+    "slug": "mobile-development",
+    "enabled": true
+  },
+  {
+    "name": "Cybersecurity",
+    "description": "Understand the fundamentals of securing networks, applications, and systems against cyber threats.",
+    "slug": "cybersecurity",
+    "enabled": true
+  }
+]
