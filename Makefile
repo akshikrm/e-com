@@ -28,6 +28,13 @@ seed-roles: build-seeder
 seed-resources: build-seeder
 	@./seeder --seed-resources
 
+seed-products: build-seeder
+	@./seeder --seed-products
+
+
+seed-product-categories: build-seeder
+	@./seeder --seed-product-categories
+
 seed-permission: build-seeder
 		@./seeder --seed-permission
 

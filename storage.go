@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("storage"))))
+	http.Handle("/", http.StripPrefix("/storage", http.FileServer(http.Dir("storage"))))
 
 	log.Println("File server started on port 8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {

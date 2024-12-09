@@ -1,0 +1,250 @@
+[
+  {
+    "name": "Introduction to Data Science",
+    "slug": "introduction-to-data-science",
+    "description": "This course introduces the basics of data science, including data cleaning, exploration, and visualization techniques. Students will also learn about essential tools such as Python and R for data analysis.",
+    "price": 199.99,
+    "image": "https://example.com/images/introduction-to-data-science.jpg",
+    "category_id": 14
+  },
+  {
+    "name": "Machine Learning Fundamentals",
+    "slug": "machine-learning-fundamentals",
+    "description": "Learn the core concepts of machine learning, including supervised and unsupervised learning, regression, classification, clustering, and evaluation techniques using popular algorithms and tools.",
+    "price": 249.99,
+    "image": "https://example.com/images/machine-learning-fundamentals.jpg",
+    "category_id": 13
+  },
+  {
+    "name": "Web Development with JavaScript",
+    "slug": "web-development-with-javascript",
+    "description": "This course covers web development using JavaScript. Students will learn how to create interactive web pages, understand front-end frameworks, and integrate JavaScript with HTML and CSS for full-stack development.",
+    "price": 179.99,
+    "image": "https://example.com/images/web-development-with-javascript.jpg",
+    "category_id": 15
+  },
+  {
+    "name": "Introduction to Cybersecurity",
+    "slug": "introduction-to-cybersecurity",
+    "description": "An introduction to the fundamentals of cybersecurity, covering topics such as network security, encryption, threat detection, and risk management. This course is ideal for beginners interested in protecting digital assets.",
+    "price": 219.99,
+    "image": "https://example.com/images/introduction-to-cybersecurity.jpg",
+    "category_id": 12
+  },
+  {
+    "name": "Cloud Computing Essentials",
+    "slug": "cloud-computing-essentials",
+    "description": "Explore the principles of cloud computing, including infrastructure, platforms, and services. This course covers popular cloud providers, such as AWS, Google Cloud, and Microsoft Azure, and how to deploy applications in the cloud.",
+    "price": 229.99,
+    "image": "https://example.com/images/cloud-computing-essentials.jpg",
+    "category_id": 14
+  },
+  {
+    "name": "Financial Accounting for Beginners",
+    "slug": "financial-accounting-for-beginners",
+    "description": "This course introduces the principles of financial accounting, focusing on the preparation and analysis of financial statements, balance sheets, income statements, and cash flow statements.",
+    "price": 149.99,
+    "image": "https://example.com/images/financial-accounting-for-beginners.jpg",
+    "category_id": 13
+  },
+  {
+    "name": "Digital Marketing Strategies",
+    "slug": "digital-marketing-strategies",
+    "description": "Learn the core concepts of digital marketing, including social media marketing, SEO, content creation, email marketing, and PPC advertising. Students will understand how to drive traffic and optimize online marketing campaigns.",
+    "price": 189.99,
+    "image": "https://example.com/images/digital-marketing-strategies.jpg",
+    "category_id": 15
+  },
+  {
+    "name": "Mobile App Development with Flutter",
+    "slug": "mobile-app-development-with-flutter",
+    "description": "Learn how to build cross-platform mobile applications using Flutter. This course covers the development of mobile apps for iOS and Android, focusing on design, functionality, and performance optimization.",
+    "price": 249.99,
+    "image": "https://example.com/images/mobile-app-development-with-flutter.jpg",
+    "category_id": 12
+  },
+  {
+    "name": "Artificial Intelligence and Ethics",
+    "slug": "artificial-intelligence-and-ethics",
+    "description": "This course examines the ethical implications of artificial intelligence and machine learning technologies. Topics include bias in algorithms, data privacy, and the societal impact of AI.",
+    "price": 199.99,
+    "image": "https://example.com/images/artificial-intelligence-and-ethics.jpg",
+    "category_id": 14
+  },
+  {
+    "name": "Introduction to Graphic Design",
+    "slug": "introduction-to-graphic-design",
+    "description": "Learn the fundamentals of graphic design, including design principles, typography, color theory, and composition. Students will use tools like Adobe Illustrator and Photoshop to create digital artwork.",
+    "price": 159.99,
+    "image": "https://example.com/images/introduction-to-graphic-design.jpg",
+    "category_id": 15
+  },
+  {
+    "name": "Data Visualization with Python",
+    "slug": "data-visualization-with-python",
+    "description": "Learn how to use Python libraries like Matplotlib and Seaborn to create powerful data visualizations. This course teaches how to represent data visually for better decision-making.",
+    "price": 179.99,
+    "image": "https://example.com/images/data-visualization-with-python.jpg",
+    "category_id": 14
+  },
+  {
+    "name": "Advanced Machine Learning",
+    "slug": "advanced-machine-learning",
+    "description": "Dive deeper into machine learning with advanced techniques like deep learning, reinforcement learning, and natural language processing.",
+    "price": 299.99,
+    "image": "https://example.com/images/advanced-machine-learning.jpg",
+    "category_id": 13
+  },
+  {
+    "name": "Responsive Web Design",
+    "slug": "responsive-web-design",
+    "description": "Master the principles of responsive web design using HTML, CSS, and media queries to create websites that work on any device.",
+    "price": 149.99,
+    "image": "https://example.com/images/responsive-web-design.jpg",
+    "category_id": 15
+  },
+  {
+    "name": "DevOps Essentials",
+    "slug": "devops-essentials",
+    "description": "Learn the essentials of DevOps, including continuous integration, continuous deployment, containerization, and automation to streamline software development.",
+    "price": 229.99,
+    "image": "https://example.com/images/devops-essentials.jpg",
+    "category_id": 14
+  },
+  {
+    "name": "Digital Photography Masterclass",
+    "slug": "digital-photography-masterclass",
+    "description": "Explore the art of digital photography, from mastering camera settings to composition and photo editing techniques.",
+    "price": 179.99,
+    "image": "https://example.com/images/digital-photography-masterclass.jpg",
+    "category_id": 12
+  },
+  {
+    "name": "Introduction to Quantum Computing",
+    "slug": "introduction-to-quantum-computing",
+    "description": "Learn about the principles of quantum computing, including quantum algorithms, quantum gates, and their real-world applications.",
+    "price": 299.99,
+    "image": "https://example.com/images/introduction-to-quantum-computing.jpg",
+    "category_id": 14
+  },
+  {
+    "name": "Full Stack Web Development",
+    "slug": "full-stack-web-development",
+    "description": "Become a full-stack developer by mastering both front-end and back-end web development using technologies like Node.js, React, and MongoDB.",
+    "price": 249.99,
+    "image": "https://example.com/images/full-stack-web-development.jpg",
+    "category_id": 15
+  },
+  {
+    "name": "Cloud Security",
+    "slug": "cloud-security",
+    "description": "Understand the security concerns in cloud computing and how to protect cloud-based systems, networks, and data.",
+    "price": 219.99,
+    "image": "https://example.com/images/cloud-security.jpg",
+    "category_id": 12
+  },
+  {
+    "name": "Blockchain Technology",
+    "slug": "blockchain-technology",
+    "description": "Learn about blockchain technology and its use cases, including cryptocurrencies, smart contracts, and decentralized applications.",
+    "price": 249.99,
+    "image": "https://example.com/images/blockchain-technology.jpg",
+    "category_id": 14
+  },
+  {
+    "name": "Social Media Marketing",
+    "slug": "social-media-marketing",
+    "description": "Learn how to effectively use social media platforms for marketing. This course covers strategies for Facebook, Instagram, Twitter, and LinkedIn.",
+    "price": 179.99,
+    "image": "https://example.com/images/social-media-marketing.jpg",
+    "category_id": 15
+  },
+  {
+    "name": "Introduction to R Programming",
+    "slug": "introduction-to-r-programming",
+    "description": "Get started with R programming for data analysis and statistical computing. Learn how to clean, manipulate, and visualize data using R.",
+    "price": 179.99,
+    "image": "https://example.com/images/introduction-to-r-programming.jpg",
+    "category_id": 14
+  },
+  {
+    "name": "Internet of Things (IoT) Basics",
+    "slug": "internet-of-things-iot-basics",
+    "description": "Learn the fundamentals of IoT, including sensors, devices, connectivity, and how IoT is transforming industries.",
+    "price": 199.99,
+    "image": "https://example.com/images/internet-of-things-iot-basics.jpg",
+    "category_id": 13
+  },
+  {
+    "name": "Ethical Hacking and Penetration Testing",
+    "slug": "ethical-hacking-and-penetration-testing",
+    "description": "Learn the basics of ethical hacking and penetration testing to identify and fix vulnerabilities in networks and applications.",
+    "price": 249.99,
+    "image": "https://example.com/images/ethical-hacking-and-penetration-testing.jpg",
+    "category_id": 12
+  },
+  {
+    "name": "Digital UX Design",
+    "slug": "digital-ux-design",
+    "description": "Learn how to create user-centered designs for digital platforms, focusing on usability, user experience principles, and prototyping.",
+    "price": 229.99,
+    "image": "https://example.com/images/digital-ux-design.jpg",
+    "category_id": 15
+  },
+  {
+    "name": "Augmented Reality (AR) Development",
+    "slug": "augmented-reality-ar-development",
+    "description": "Discover how to create augmented reality experiences using tools like ARKit and Unity. Learn about AR application design and development.",
+    "price": 279.99,
+    "image": "https://example.com/images/augmented-reality-ar-development.jpg",
+    "category_id": 12
+  },
+  {
+    "name": "Virtual Reality (VR) Programming",
+    "slug": "virtual-reality-vr-programming",
+    "description": "Learn the fundamentals of VR programming using Unity and C#. Create immersive VR applications for various platforms.",
+    "price": 299.99,
+    "image": "https://example.com/images/virtual-reality-vr-programming.jpg",
+    "category_id": 12
+  },
+  {
+    "name": "Business Analytics with Excel",
+    "slug": "business-analytics-with-excel",
+    "description": "Learn how to analyze business data using Microsoft Excel, including pivot tables, formulas, data visualization, and statistical analysis.",
+    "price": 179.99,
+    "image": "https://example.com/images/business-analytics-with-excel.jpg",
+    "category_id": 13
+  },
+  {
+    "name": "Introduction to SQL",
+    "slug": "introduction-to-sql",
+    "description": "Learn the basics of SQL (Structured Query Language), including querying databases, joining tables, and data manipulation.",
+    "price": 169.99,
+    "image": "https://example.com/images/introduction-to-sql.jpg",
+    "category_id": 14
+  },
+  {
+    "name": "Agile Project Management",
+    "slug": "agile-project-management",
+    "description": "Learn how to manage projects using Agile methodologies. Understand Scrum, Kanban, and other frameworks for delivering projects effectively.",
+    "price": 219.99,
+    "image": "https://example.com/images/agile-project-management.jpg",
+    "category_id": 13
+  },
+  {
+    "name": "Web Security and Ethical Hacking",
+    "slug": "web-security-and-ethical-hacking",
+    "description": "Understand the key aspects of web security and learn ethical hacking techniques to identify vulnerabilities and secure web applications.",
+    "price": 249.99,
+    "image": "https://example.com/images/web-security-and-ethical-hacking.jpg",
+    "category_id": 12
+  },
+  {
+    "name": "Advanced React and Redux",
+    "slug": "advanced-react-and-redux",
+    "description": "Take your React development skills to the next level by mastering Redux, advanced React patterns, and best practices.",
+    "price": 249.99,
+    "image": "https://example.com/images/advanced-react-and-redux.jpg",
+    "category_id": 15
+  }
+]
