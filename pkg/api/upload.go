@@ -47,5 +47,4 @@ func NewUploadApi(database *db.Storage) *UploadApi {
 	return &UploadApi{
 		model: uploadStorage,
 	}
-
 }
