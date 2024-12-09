@@ -45,18 +45,30 @@ func (c *CartStorage) GetAll(userID uint) ([]*types.CartList, error) {
 	return carts, nil
 }
 
-func (c *CartStorage) GetOne(cid uint) (*types.Cart, error) {
-	query := "SELECT * FROM carts WHERE id=$1 AND deleted_at IS NULL"
+func (c *CartStorage) GetOne(cid uint) (*types.CartList, error) {
+	query := "SELECT c.id, c.quantity, p.id, p.name, p.slug, p.price, p.description, p.image, c.created_at FROM carts c INNER JOIN products p ON c.product_id=p.id WHERE c.id=$1 AND c.deleted_at IS NULL"
 	row := c.store.QueryRow(query, cid)
-	cart, err := scanNewCartRow(row)
+	cart := types.CartList{}
+	err := row.Scan(
+		&cart.ID,
+		&cart.Quantity,
+		&cart.Product.ID,
+		&cart.Product.Name,
+		&cart.Product.Slug,
+		&cart.Product.Price,
+		&cart.Product.Description,
+		&cart.Product.Image,
+		&cart.CreatedAt,
+	)
 	if err == sql.ErrNoRows {
 		return nil, utils.NotFound
 	}
+
 	if err != nil {
-		log.Printf("failed to get cart with id %d due to %s", cid, err)
+		log.Printf("failed to scan carts due to %s", err)
 		return nil, utils.ServerError
 	}
-	return cart, nil
+	return &cart, nil
 }
 
 func (c *CartStorage) Create(newCart *types.CreateCartRequest) (*types.Cart, error) {
@@ -70,18 +82,17 @@ func (c *CartStorage) Create(newCart *types.CreateCartRequest) (*types.Cart, err
 	return cart, nil
 }
 
-func (c *CartStorage) Update(cid uint, updateCart *types.UpdateCartRequest) (*types.Cart, error) {
-	query := "UPDATE carts SET quantity=$1 WHERE id=$2 AND deleted_at IS NULL RETURNING *"
-	row := c.store.QueryRow(query, updateCart.Quantity, cid)
-	cart, err := scanNewCartRow(row)
-	if err == sql.ErrNoRows {
-		return nil, utils.NotFound
-	}
-	if err != nil {
+func (c *CartStorage) Update(cid uint, updateCart *types.UpdateCartRequest) (*types.CartList, error) {
+	query := "UPDATE carts SET quantity=$1 WHERE id=$2 AND deleted_at IS NULL"
+	if _, err := c.store.Exec(query, updateCart.Quantity, cid); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, utils.NotFound
+		}
 		log.Printf("Failed to update cart %d due to %s", cid, err)
 		return nil, utils.ServerError
 	}
-	return cart, nil
+
+	return c.GetOne(cid)
 }
 
 func (c *CartStorage) Delete(cid uint) error {
