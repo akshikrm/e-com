@@ -5,7 +5,7 @@ import (
 )
 
 type CartModeler interface {
-	GetAll(uint) ([]*types.Cart, error)
+	GetAll(uint) ([]*types.CartList, error)
 	GetOne(uint) (*types.Cart, error)
 	Create(*types.CreateCartRequest) (*types.Cart, error)
 	Update(uint, *types.UpdateCartRequest) (*types.Cart, error)
@@ -16,7 +16,7 @@ type CartService struct {
 	cartModel CartModeler
 }
 
-func (c *CartService) GetAll(userID uint) ([]*types.Cart, error) {
+func (c *CartService) GetAll(userID uint) ([]*types.CartList, error) {
 	return c.cartModel.GetAll(userID)
 }
 
