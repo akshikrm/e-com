@@ -11,9 +11,9 @@ import (
 
 type CartServicer interface {
 	GetAll(uint) ([]*types.CartList, error)
-	GetOne(uint) (*types.Cart, error)
+	GetOne(uint) (*types.CartList, error)
 	Create(*types.CreateCartRequest) error
-	Update(uint, *types.UpdateCartRequest) (*types.Cart, error)
+	Update(uint, *types.UpdateCartRequest) (*types.CartList, error)
 	Delete(uint) error
 }
 
