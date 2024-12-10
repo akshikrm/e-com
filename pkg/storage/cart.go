@@ -45,6 +45,41 @@ func (c *CartStorage) GetAll(userID uint) ([]*types.CartList, error) {
 	return carts, nil
 }
 
+func (c *CartStorage) GetAllProductIDByUserID(userID uint) ([]*uint32, error) {
+	query := "SELECT p.id FROM carts c INNER JOIN products p ON c.product_id=p.id WHERE c.user_id=$1 AND c.deleted_at IS NULL"
+	rows, err := c.store.Query(query, userID)
+	if err == sql.ErrNoRows {
+		return nil, utils.NotFound
+	}
+	if err != nil {
+		log.Printf("failed to get all carts due to %s", err)
+		return nil, utils.ServerError
+	}
+	products := []*uint32{}
+	for rows.Next() {
+		var pid uint32
+		err := rows.Scan(&pid)
+		if err != nil {
+			log.Printf("failed to scan carts due to %s", err)
+			return nil, utils.ServerError
+		}
+		products = append(products, &pid)
+	}
+	return products, nil
+}
+
+func (c *CartStorage) GetTotalPriceOfUser(userID uint) (uint32, error) {
+	carts, err := c.GetAll(userID)
+	if err != nil {
+		return 0, err
+	}
+	var total uint32
+	for _, item := range carts {
+		total += uint32(item.Product.Price * item.Quantity)
+	}
+	return total, nil
+}
+
 func (c *CartStorage) GetOne(cid uint) (*types.CartList, error) {
 	query := "SELECT c.id, c.quantity, p.id, p.name, p.slug, p.price, p.description, p.image, c.created_at FROM carts c INNER JOIN products p ON c.product_id=p.id WHERE c.id=$1 AND c.deleted_at IS NULL"
 	row := c.store.QueryRow(query, cid)
@@ -123,6 +158,15 @@ func (c *CartStorage) Delete(cid uint) error {
 	query := "UPDATE carts set deleted_at=$1 where id=$2 AND deleted_at IS NULL"
 	if _, err := c.store.Exec(query, time.Now(), cid); err != nil {
 		log.Printf("failed to delete cart item with id %d due to %s", cid, err)
+		return utils.ServerError
+	}
+	return nil
+}
+
+func (c *CartStorage) HardDeleteByUserID(userID uint) error {
+	query := "DELETE FROM carts WHERE user_id=$1 AND deleted_at IS NULL"
+	if _, err := c.store.Exec(query, userID); err != nil {
+		log.Printf("failed to delete cart item with user_id %d due to %s", userID, err)
 		return utils.ServerError
 	}
 	return nil

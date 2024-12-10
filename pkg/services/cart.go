@@ -13,6 +13,9 @@ type CartModeler interface {
 	Delete(uint) error
 	CheckIfEntryExist(uint, uint) (bool, error)
 	UpdateQuantity(uint, uint, uint) error
+	GetTotalPriceOfUser(uint) (uint32, error)
+	GetAllProductIDByUserID(uint) ([]*uint32, error)
+	HardDeleteByUserID(uint) error
 }
 
 type CartService struct {
@@ -21,6 +24,13 @@ type CartService struct {
 
 func (c *CartService) GetAll(userID uint) ([]*types.CartList, error) {
 	return c.cartModel.GetAll(userID)
+}
+
+func (c *CartService) GetTotalPriceOfUser(userID uint) (uint32, error) {
+	return c.cartModel.GetTotalPriceOfUser(userID)
+}
+func (c *CartService) GetAllProductIDByUserID(userID uint) ([]*uint32, error) {
+	return c.cartModel.GetAllProductIDByUserID(userID)
 }
 
 func (c *CartService) GetOne(cid uint) (*types.CartList, error) {
@@ -48,6 +58,10 @@ func (c *CartService) Update(cid uint, updateCart *types.UpdateCartRequest) (*ty
 
 func (c *CartService) Delete(cid uint) error {
 	return c.cartModel.Delete(cid)
+}
+
+func (c *CartService) HardDeleteByUserID(userID uint) error {
+	return c.cartModel.HardDeleteByUserID(userID)
 }
 
 func NewCartService(cartModel CartModeler) *CartService {
