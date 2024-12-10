@@ -12,7 +12,7 @@ type CartModeler interface {
 	Update(uint, *types.UpdateCartRequest) (*types.CartList, error)
 	Delete(uint) error
 	CheckIfEntryExist(uint, uint) (bool, error)
-	UpdateQuantity(uint, uint) error
+	UpdateQuantity(uint, uint, uint) error
 }
 
 type CartService struct {
@@ -35,7 +35,7 @@ func (c *CartService) Create(newCart *types.CreateCartRequest) error {
 
 	fmt.Println(exists)
 	if exists {
-		return c.cartModel.UpdateQuantity(newCart.UserID, newCart.ProductID)
+		return c.cartModel.UpdateQuantity(newCart.UserID, newCart.ProductID, newCart.Quantity)
 	}
 
 	_, err = c.cartModel.Create(newCart)
