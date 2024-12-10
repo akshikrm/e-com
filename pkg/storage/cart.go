@@ -82,9 +82,9 @@ func (c *CartStorage) CheckIfEntryExist(userID, productID uint) (bool, error) {
 	return exists, nil
 }
 
-func (c *CartStorage) UpdateQuantity(cid, pid uint) error {
-	query := "UPDATE carts SET quantity=quantity+1 WHERE user_id=$1 and product_id=$2"
-	if _, err := c.store.Exec(query, cid, pid); err != nil {
+func (c *CartStorage) UpdateQuantity(cid, pid, qty uint) error {
+	query := "UPDATE carts SET quantity=quantity+$1 WHERE user_id=$2 and product_id=$3"
+	if _, err := c.store.Exec(query, qty, cid, pid); err != nil {
 		if err == sql.ErrNoRows {
 			return utils.NotFound
 		}
